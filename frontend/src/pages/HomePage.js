@@ -145,8 +145,16 @@ const HomePage = () => {
             <p className="mt-4 text-slate-600">Carregando...</p>
           </div>
         ) : unidades.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-xl shadow-sm">
-            <p className="text-slate-600">Nenhuma unidade encontrada com os filtros selecionados.</p>
+          <div className="text-center py-16 bg-white rounded-xl shadow-sm">
+            <div className="max-w-md mx-auto">
+              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MapPin className="w-8 h-8 text-slate-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">Nenhuma unidade cadastrada</h3>
+              <p className="text-slate-600">
+                As unidades de evangelização do DARPE Regional Itajaí serão adicionadas em breve.
+              </p>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -166,6 +174,11 @@ const HomePage = () => {
                     <span>{unidade.cidade}</span>
                   </div>
 
+                  <div className="flex items-start gap-2">
+                    <div className="w-4 h-4 text-accent mt-0.5">📍</div>
+                    <span className="text-xs leading-relaxed">{unidade.setor}</span>
+                  </div>
+
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-accent" />
                     <span className="capitalize">{unidade.dia_semana.replace('_', '-')}</span>
@@ -176,11 +189,18 @@ const HomePage = () => {
                     <span>{unidade.horario}</span>
                   </div>
 
-                  {unidade.tipo_atividade && (
+                  {unidade.tipo_servico && (
                     <div className="mt-3 pt-3 border-t border-slate-100">
                       <span className="inline-block bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1 rounded-full">
-                        {unidade.tipo_atividade}
+                        {unidade.tipo_servico}
                       </span>
+                    </div>
+                  )}
+
+                  {unidade.telefone_contato && (
+                    <div className="flex items-center gap-2 mt-2 text-xs">
+                      <span>📞</span>
+                      <span>{unidade.telefone_contato}</span>
                     </div>
                   )}
 

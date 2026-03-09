@@ -31,6 +31,16 @@ class DayOfWeek(str, Enum):
     SABADO = "sabado"
     DOMINGO = "domingo"
 
+class ServiceType(str, Enum):
+    EVANGELIZACAO = "Reunião de Evangelização"
+    PMAE = "Projeto Música, Acolhimento e Espiritualidade (PMAE)"
+
+class Sector(str, Enum):
+    SETOR_1 = "SETOR 1 - Sistemas de Ressocialização e Socioeducativos"
+    SETOR_2 = "SETOR 2 - Clínica de Dependentes e Albergues"
+    SETOR_3 = "SETOR 3 - Forças de Segurança"
+    SETOR_4 = "SETOR 4 - Hospitais, Instituição para Idosos, Setor Educacional"
+
 # User Models
 class UserBase(BaseModel):
     email: str
@@ -71,9 +81,11 @@ class Token(BaseModel):
 class UnitBase(BaseModel):
     nome: str
     cidade: str
+    setor: Sector
+    tipo_servico: ServiceType
     dia_semana: DayOfWeek
     horario: str
-    tipo_atividade: str
+    telefone_contato: Optional[str] = None
     endereco: Optional[str] = None
     observacoes: Optional[str] = None
 
@@ -83,9 +95,11 @@ class UnitCreate(UnitBase):
 class UnitUpdate(BaseModel):
     nome: Optional[str] = None
     cidade: Optional[str] = None
+    setor: Optional[Sector] = None
+    tipo_servico: Optional[ServiceType] = None
     dia_semana: Optional[DayOfWeek] = None
     horario: Optional[str] = None
-    tipo_atividade: Optional[str] = None
+    telefone_contato: Optional[str] = None
     endereco: Optional[str] = None
     responsaveis: Optional[List[str]] = None
     observacoes: Optional[str] = None

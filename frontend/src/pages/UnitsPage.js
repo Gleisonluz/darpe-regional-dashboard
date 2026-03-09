@@ -114,10 +114,12 @@ const UnitsPage = () => {
                       </div>
                     </div>
                     <div className="space-y-2 text-sm">
+                      <p className="text-slate-600"><span className="font-medium">Setor:</span> <span className="text-xs">{unit.setor}</span></p>
+                      <p className="text-slate-600"><span className="font-medium">Serviço:</span> {unit.tipo_servico}</p>
                       <p className="text-slate-600"><span className="font-medium">Dia:</span> <span className="capitalize">{unit.dia_semana}</span></p>
                       <p className="text-slate-600"><span className="font-medium">Horário:</span> {unit.horario}</p>
-                      {unit.tipo_atividade && (
-                        <span className="inline-block bg-slate-100 text-slate-700 text-xs px-2 py-1 rounded-full mt-2">{unit.tipo_atividade}</span>
+                      {unit.telefone_contato && (
+                        <p className="text-slate-600"><span className="font-medium">Telefone:</span> {unit.telefone_contato}</p>
                       )}
                     </div>
                   </div>

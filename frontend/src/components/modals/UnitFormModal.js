@@ -23,14 +23,28 @@ const diasSemana = [
   { value: 'domingo', label: 'Domingo' }
 ];
 
+const setores = [
+  { value: 'SETOR 1 - Sistemas de Ressocialização e Socioeducativos', label: 'SETOR 1 - Sistemas de Ressocialização e Socioeducativos' },
+  { value: 'SETOR 2 - Clínica de Dependentes e Albergues', label: 'SETOR 2 - Clínica de Dependentes e Albergues' },
+  { value: 'SETOR 3 - Forças de Segurança', label: 'SETOR 3 - Forças de Segurança' },
+  { value: 'SETOR 4 - Hospitais, Instituição para Idosos, Setor Educacional', label: 'SETOR 4 - Hospitais, Instituição para Idosos, Setor Educacional' }
+];
+
+const tiposServico = [
+  { value: 'Reunião de Evangelização', label: 'Reunião de Evangelização' },
+  { value: 'Projeto Música, Acolhimento e Espiritualidade (PMAE)', label: 'Projeto Música, Acolhimento e Espiritualidade (PMAE)' }
+];
+
 export const UnitFormModal = ({ open, onClose, unit, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     nome: '',
     cidade: '',
+    setor: '',
+    tipo_servico: '',
     dia_semana: 'domingo',
     horario: '',
-    tipo_atividade: '',
+    telefone_contato: '',
     endereco: '',
     observacoes: ''
   });
@@ -40,9 +54,11 @@ export const UnitFormModal = ({ open, onClose, unit, onSuccess }) => {
       setFormData({
         nome: unit.nome || '',
         cidade: unit.cidade || '',
+        setor: unit.setor || '',
+        tipo_servico: unit.tipo_servico || '',
         dia_semana: unit.dia_semana || 'domingo',
         horario: unit.horario || '',
-        tipo_atividade: unit.tipo_atividade || '',
+        telefone_contato: unit.telefone_contato || '',
         endereco: unit.endereco || '',
         observacoes: unit.observacoes || ''
       });
@@ -50,9 +66,11 @@ export const UnitFormModal = ({ open, onClose, unit, onSuccess }) => {
       setFormData({
         nome: '',
         cidade: '',
+        setor: '',
+        tipo_servico: '',
         dia_semana: 'domingo',
         horario: '',
-        tipo_atividade: '',
+        telefone_contato: '',
         endereco: '',
         observacoes: ''
       });
@@ -62,7 +80,7 @@ export const UnitFormModal = ({ open, onClose, unit, onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.nome || !formData.cidade || !formData.horario) {
+    if (!formData.nome || !formData.cidade || !formData.setor || !formData.tipo_servico || !formData.horario) {
       toast.error('Preencha todos os campos obrigatórios');
       return;
     }
@@ -121,6 +139,36 @@ export const UnitFormModal = ({ open, onClose, unit, onSuccess }) => {
             </div>
 
             <div>
+              <label className="text-sm font-medium text-slate-700 mb-2 block">Setor *</label>
+              <Select value={formData.setor} onValueChange={(value) => setFormData({ ...formData, setor: value })}>
+                <SelectTrigger data-testid="unit-sector-select">
+                  <SelectValue placeholder="Selecione o setor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {setores.map((setor) => (
+                    <SelectItem key={setor.value} value={setor.value}>{setor.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-slate-700 mb-2 block">Tipo de Serviço *</label>
+              <Select value={formData.tipo_servico} onValueChange={(value) => setFormData({ ...formData, tipo_servico: value })}>
+                <SelectTrigger data-testid="unit-service-select">
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {tiposServico.map((tipo) => (
+                    <SelectItem key={tipo.value} value={tipo.value}>{tipo.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
               <label className="text-sm font-medium text-slate-700 mb-2 block">Dia da Semana *</label>
               <Select value={formData.dia_semana} onValueChange={(value) => setFormData({ ...formData, dia_semana: value })}>
                 <SelectTrigger data-testid="unit-day-select">
@@ -148,12 +196,12 @@ export const UnitFormModal = ({ open, onClose, unit, onSuccess }) => {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-slate-700 mb-2 block">Tipo de Atividade</label>
+              <label className="text-sm font-medium text-slate-700 mb-2 block">Telefone de Contato</label>
               <Input
-                data-testid="unit-activity-input"
-                value={formData.tipo_atividade}
-                onChange={(e) => setFormData({ ...formData, tipo_atividade: e.target.value })}
-                placeholder="Ex: Evangelização"
+                data-testid="unit-phone-input"
+                value={formData.telefone_contato}
+                onChange={(e) => setFormData({ ...formData, telefone_contato: e.target.value })}
+                placeholder="Ex: (47) 99999-9999"
               />
             </div>
           </div>

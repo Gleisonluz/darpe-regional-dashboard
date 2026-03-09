@@ -47,95 +47,16 @@ async def seed_database():
     else:
         print("ℹ️  Usuário admin já existe")
     
-    # Criar algumas unidades de exemplo
-    unidades_exemplo = [
-        {
-            "id": "unit-001",
-            "nome": "Centro de Evangelização Itajaí Centro",
-            "cidade": "Itajaí",
-            "dia_semana": "quarta",
-            "horario": "19:30",
-            "tipo_atividade": "Evangelização",
-            "endereco": "Rua das Flores, 123 - Centro",
-            "responsaveis": ["admin-001"],
-            "ativo": True,
-            "observacoes": None,
-            "created_at": datetime.now(timezone.utc).isoformat()
-        },
-        {
-            "id": "unit-002",
-            "nome": "Grupo de Estudo Balneário Camboriú",
-            "cidade": "Balneário Camboriú",
-            "dia_semana": "quinta",
-            "horario": "20:00",
-            "tipo_atividade": "Estudo",
-            "endereco": "Av. Atlântica, 456",
-            "responsaveis": ["admin-001"],
-            "ativo": True,
-            "observacoes": None,
-            "created_at": datetime.now(timezone.utc).isoformat()
-        },
-        {
-            "id": "unit-003",
-            "nome": "Casa Espírita Navegantes",
-            "cidade": "Navegantes",
-            "dia_semana": "domingo",
-            "horario": "10:00",
-            "tipo_atividade": "Culto Gospel",
-            "endereco": "Rua Principal, 789",
-            "responsaveis": [],
-            "ativo": True,
-            "observacoes": None,
-            "created_at": datetime.now(timezone.utc).isoformat()
-        },
-        {
-            "id": "unit-004",
-            "nome": "Reunião Pública Brusque",
-            "cidade": "Brusque",
-            "dia_semana": "segunda",
-            "horario": "19:00",
-            "tipo_atividade": "Palestra",
-            "endereco": "Rua dos Imigrantes, 321",
-            "responsaveis": [],
-            "ativo": True,
-            "observacoes": None,
-            "created_at": datetime.now(timezone.utc).isoformat()
-        },
-        {
-            "id": "unit-005",
-            "nome": "Centro Espírita Blumenau",
-            "cidade": "Blumenau",
-            "dia_semana": "sexta",
-            "horario": "20:30",
-            "tipo_atividade": "Evangelização",
-            "endereco": "Rua XV de Novembro, 555",
-            "responsaveis": [],
-            "ativo": True,
-            "observacoes": None,
-            "created_at": datetime.now(timezone.utc).isoformat()
-        }
-    ]
-    
-    # Inserir unidades
-    for unidade in unidades_exemplo:
-        existing = await db.units.find_one({"id": unidade["id"]})
-        if not existing:
-            await db.units.insert_one(unidade)
-            print(f"✅ Unidade criada: {unidade['nome']}")
-        else:
-            print(f"ℹ️  Unidade já existe: {unidade['nome']}")
-    
-    # Atualizar unidades do admin
-    await db.users.update_one(
-        {"id": "admin-001"},
-        {"$set": {"unidades": ["unit-001", "unit-002"]}}
-    )
+    # Limpar unidades fictícias antigas
+    await db.units.delete_many({})
+    print("✅ Unidades fictícias removidas - sistema pronto para dados reais")
     
     print("\n✨ Seed concluído com sucesso!")
     print("\n📝 Credenciais de acesso:")
     print("   Email: admin@darpe.org")
     print("   Senha: admin123")
-    print("   Role: Secretário Regional (acesso total)\n")
+    print("   Role: Secretário Regional (acesso total)")
+    print("\n⚠️  Sistema limpo - adicione unidades reais do DARPE pela interface administrativa\n")
     
     client.close()
 
