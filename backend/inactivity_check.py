@@ -6,12 +6,17 @@ async def check_and_update_inactive_users(db: AsyncIOMotorDatabase):
     """
     Verifica usuários inativos (mais de 90 dias sem registrar presença)
     e atualiza o status para BLOQUEADO_INATIVIDADE
+    
+    IMPORTANTE: Administradores (secretario_regional e anciao_coordenador) 
+    nunca são bloqueados por inatividade
     """
     threshold_date = datetime.now(timezone.utc) - timedelta(days=90)
     
     # Buscar usuários ativos que não registraram presença há mais de 90 dias
+    # EXCLUINDO administradores (secretario_regional e anciao_coordenador)
     users = await db.users.find({
         "status": UserStatus.ATIVO.value,
+        "role": {"$nin": ["secretario_regional", "anciao_coordenador"]},  # Excluir admins
         "$or": [
             {"ultimo_atendimento": {"$lt": threshold_date.isoformat()}},
             {"ultimo_atendimento": None}
