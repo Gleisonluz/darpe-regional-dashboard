@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
-export const ProtectedRoute = ({ children, allowedRoles }) => {
+export const ProtectedRoute = ({ children, allowedFunctions }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -20,7 +20,7 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
+  if (allowedFunctions && !allowedFunctions.some(f => user.funcoes_darpe?.includes(f))) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-muted p-4">
         <div className="bg-white p-8 rounded-xl shadow-lg text-center max-w-md">

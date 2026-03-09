@@ -40,7 +40,7 @@ function App() {
           <Route
             path="/credential"
             element={
-              <ProtectedRoute allowedRoles={['atendente']}>
+              <ProtectedRoute allowedFunctions={['Atendente']}>
                 <CredentialPage />
               </ProtectedRoute>
             }
@@ -48,7 +48,7 @@ function App() {
           <Route
             path="/attendance"
             element={
-              <ProtectedRoute allowedRoles={['atendente']}>
+              <ProtectedRoute allowedFunctions={['Atendente']}>
                 <AttendancePage />
               </ProtectedRoute>
             }
@@ -56,7 +56,7 @@ function App() {
           <Route
             path="/service"
             element={
-              <ProtectedRoute allowedRoles={['secretario_regional', 'anciao_coordenador', 'secretario_local', 'atendente']}>
+              <ProtectedRoute allowedFunctions={['Secretário Regional', 'Ancião Coordenador', 'Secretário Local', 'Atendente']}>
                 <ServicePage />
               </ProtectedRoute>
             }
@@ -64,7 +64,7 @@ function App() {
           <Route
             path="/units"
             element={
-              <ProtectedRoute allowedRoles={['secretario_regional', 'anciao_coordenador', 'secretario_local']}>
+              <ProtectedRoute allowedFunctions={['Secretário Regional', 'Ancião Coordenador', 'Secretário Local']}>
                 <UnitsPage />
               </ProtectedRoute>
             }
@@ -72,7 +72,7 @@ function App() {
           <Route
             path="/users"
             element={
-              <ProtectedRoute allowedRoles={['secretario_regional', 'anciao_coordenador', 'secretario_local']}>
+              <ProtectedRoute allowedFunctions={['Secretário Regional', 'Ancião Coordenador', 'Secretário Local']}>
                 <UsersPage />
               </ProtectedRoute>
             }
@@ -88,7 +88,7 @@ function App() {
           <Route
             path="/reports"
             element={
-              <ProtectedRoute allowedRoles={['secretario_regional', 'anciao_coordenador', 'secretario_local']}>
+              <ProtectedRoute allowedFunctions={['Secretário Regional', 'Ancião Coordenador', 'Secretário Local']}>
                 <ReportsPage />
               </ProtectedRoute>
             }

@@ -3,12 +3,11 @@ from typing import Optional, List
 from datetime import datetime, timezone
 from enum import Enum
 
-class UserRole(str, Enum):
-    SECRETARIO_REGIONAL = "secretario_regional"
-    ANCIAO_COORDENADOR = "anciao_coordenador"
-    SECRETARIO_LOCAL = "secretario_local"
-    ATENDENTE = "atendente"
-    CONSULTA = "consulta"
+class DarpeFuncao(str, Enum):
+    ATENDENTE = "Atendente"
+    SECRETARIO_LOCAL = "Secretário Local"
+    SECRETARIO_REGIONAL = "Secretário Regional"
+    ANCIAO_COORDENADOR = "Ancião Coordenador"
 
 class UserStatus(str, Enum):
     ATIVO = "ativo"
@@ -43,10 +42,12 @@ class Sector(str, Enum):
 
 # User Models
 class UserBase(BaseModel):
-    email: str
+    whatsapp: str
     nome_completo: str
-    role: UserRole
-    cidade: Optional[str] = None
+    funcoes_darpe: List[DarpeFuncao]
+    cidade: str
+    localidade: Optional[str] = None
+    email: Optional[str] = None
     foto_url: Optional[str] = None
 
 class UserCreate(UserBase):
@@ -55,8 +56,10 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     nome_completo: Optional[str] = None
     cidade: Optional[str] = None
+    localidade: Optional[str] = None
+    email: Optional[str] = None
     foto_url: Optional[str] = None
-    role: Optional[UserRole] = None
+    funcoes_darpe: Optional[List[DarpeFuncao]] = None
     status: Optional[UserStatus] = None
 
 class User(UserBase):
@@ -69,7 +72,7 @@ class User(UserBase):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class UserLogin(BaseModel):
-    email: str
+    whatsapp: str
     senha: str
 
 class Token(BaseModel):

@@ -40,9 +40,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (email, senha) => {
+  const login = async (whatsapp, senha) => {
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, { email, senha });
+      const response = await axios.post(`${API_URL}/auth/login`, { whatsapp, senha });
       const { access_token, user: userData } = response.data;
       setToken(access_token);
       setUser(userData);

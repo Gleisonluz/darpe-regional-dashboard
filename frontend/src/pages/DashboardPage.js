@@ -34,13 +34,13 @@ const DashboardPage = () => {
       };
 
       // Se for atendente, buscar suas presenças
-      if (user.role === 'atendente') {
+      if (user.funcoes_darpe.includes('Atendente')) {
         const attendanceRes = await attendanceApi.getMyRecords();
         newStats.myAttendances = attendanceRes.data.length;
       }
 
-      // Se for admin, buscar total de usuários
-      if (['secretario_regional', 'anciao_coordenador', 'secretario_local'].includes(user.role)) {
+      // Se for admin ou secretário local, buscar total de usuários
+      if (user.funcoes_darpe.some(f => ['Secretário Regional', 'Ancião Coordenador', 'Secretário Local'].includes(f))) {
         const usersRes = await usersApi.getAll();
         newStats.totalUsers = usersRes.data.length;
       }
@@ -53,15 +53,9 @@ const DashboardPage = () => {
     }
   };
 
-  const getRoleTitle = (role) => {
-    const titles = {
-      secretario_regional: 'Secretário Regional',
-      anciao_coordenador: 'Ancião Coordenador',
-      secretario_local: 'Secretário Local',
-      atendente: 'Atendente',
-      consulta: 'Consulta'
-    };
-    return titles[role] || role;
+  const getRoleTitle = (funcoes_darpe) => {
+    if (!funcoes_darpe || funcoes_darpe.length === 0) return 'Colaborador';
+    return funcoes_darpe.join(' + ');
   };
 
   return (
@@ -88,7 +82,7 @@ const DashboardPage = () => {
                 Olá, {user?.nome_completo?.split(' ')[0]}!
               </h1>
               <p className="text-lg text-slate-600">
-                {getRoleTitle(user?.role)} - DARPE Regional Itajaí
+                {getRoleTitle(user?.funcoes_darpe)} - DARPE Regional Itajaí
               </p>
             </div>
 
@@ -101,7 +95,7 @@ const DashboardPage = () => {
               <div className="space-y-8">
                 {/* Cards de Estatísticas */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {['secretario_regional', 'anciao_coordenador', 'secretario_local'].includes(user?.role) && (
+                  {user?.funcoes_darpe?.some(f => ['Secretário Regional', 'Ancião Coordenador', 'Secretário Local'].includes(f)) && (
                     <div data-testid="stat-card-users" className="bg-white border border-slate-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center justify-between mb-4">
                         <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center">
@@ -123,7 +117,7 @@ const DashboardPage = () => {
                     <p className="text-3xl font-heading font-bold text-slate-900">{stats.totalUnits}</p>
                   </div>
 
-                  {user?.role === 'atendente' && (
+                  {user?.funcoes_darpe?.includes('Atendente') && (
                     <div data-testid="stat-card-attendances" className="bg-white border border-slate-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center justify-between mb-4">
                         <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center">

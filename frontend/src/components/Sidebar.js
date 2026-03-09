@@ -24,18 +24,26 @@ export const Sidebar = () => {
     navigate('/login');
   };
 
+  const hasFunction = (func) => {
+    return user?.funcoes_darpe?.includes(func);
+  };
+
+  const isAdmin = () => {
+    return hasFunction('Secretário Regional') || hasFunction('Ancião Coordenador');
+  };
+
   const navItems = [
-    { to: '/dashboard', icon: Home, label: 'Início', roles: ['secretario_regional', 'anciao_coordenador', 'secretario_local', 'atendente', 'consulta'] },
-    { to: '/credential', icon: CreditCard, label: 'Credencial', roles: ['atendente'] },
-    { to: '/attendance', icon: ClipboardList, label: 'Registrar Presença', roles: ['atendente'] },
-    { to: '/service', icon: FileText, label: 'Registrar Atendimento', roles: ['secretario_regional', 'anciao_coordenador', 'secretario_local', 'atendente'] },
-    { to: '/units', icon: Church, label: 'Unidades', roles: ['secretario_regional', 'anciao_coordenador', 'secretario_local'] },
-    { to: '/users', icon: Users, label: 'Colaboradores', roles: ['secretario_regional', 'anciao_coordenador', 'secretario_local'] },
-    { to: '/agenda', icon: Calendar, label: 'Agenda', roles: ['secretario_regional', 'anciao_coordenador', 'secretario_local', 'atendente', 'consulta'] },
-    { to: '/reports', icon: BarChart3, label: 'Relatórios', roles: ['secretario_regional', 'anciao_coordenador', 'secretario_local'] },
+    { to: '/dashboard', icon: Home, label: 'Início', show: true },
+    { to: '/credential', icon: CreditCard, label: 'Credencial', show: hasFunction('Atendente') },
+    { to: '/attendance', icon: ClipboardList, label: 'Registrar Presença', show: hasFunction('Atendente') },
+    { to: '/service', icon: FileText, label: 'Registrar Atendimento', show: hasFunction('Atendente') || hasFunction('Secretário Local') || isAdmin() },
+    { to: '/units', icon: Church, label: 'Unidades', show: hasFunction('Secretário Local') || isAdmin() },
+    { to: '/users', icon: Users, label: 'Colaboradores', show: hasFunction('Secretário Local') || isAdmin() },
+    { to: '/agenda', icon: Calendar, label: 'Agenda', show: true },
+    { to: '/reports', icon: BarChart3, label: 'Relatórios', show: hasFunction('Secretário Local') || isAdmin() },
   ];
 
-  const filteredNavItems = navItems.filter(item => item.roles.includes(user?.role));
+  const filteredNavItems = navItems.filter(item => item.show);
 
   return (
     <aside className="hidden md:flex md:flex-col w-64 bg-white border-r border-slate-200 min-h-screen">
@@ -70,7 +78,7 @@ export const Sidebar = () => {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-slate-900 truncate">{user?.nome_completo}</p>
-            <p className="text-xs text-slate-500 capitalize">{user?.role?.replace('_', ' ')}</p>
+            <p className="text-xs text-slate-500">{user?.funcoes_darpe?.join(', ')}</p>
           </div>
         </div>
         <Button

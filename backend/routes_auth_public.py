@@ -14,10 +14,10 @@ def create_auth_router(db: AsyncIOMotorDatabase) -> APIRouter:
     
     @router.post("/register", response_model=User)
     async def register(user_data: UserCreate):
-        # Verificar se email já existe
-        existing_user = await db.users.find_one({"email": user_data.email}, {"_id": 0})
+        # Verificar se WhatsApp já existe
+        existing_user = await db.users.find_one({"whatsapp": user_data.whatsapp}, {"_id": 0})
         if existing_user:
-            raise HTTPException(status_code=400, detail="Email já cadastrado")
+            raise HTTPException(status_code=400, detail="WhatsApp já cadastrado")
         
         # Criar usuário
         user_dict = user_data.model_dump()
@@ -27,6 +27,7 @@ def create_auth_router(db: AsyncIOMotorDatabase) -> APIRouter:
         user_dict["unidades"] = []
         user_dict["ultimo_atendimento"] = None
         user_dict["created_at"] = datetime.now(timezone.utc).isoformat()
+        user_dict["funcoes_darpe"] = [f.value for f in user_data.funcoes_darpe]
         
         await db.users.insert_one(user_dict)
         
@@ -35,17 +36,21 @@ def create_auth_router(db: AsyncIOMotorDatabase) -> APIRouter:
     
     @router.post("/login", response_model=Token)
     async def login(credentials: UserLogin):
-        # Buscar usuário
-        user = await db.users.find_one({"email": credentials.email}, {"_id": 0})
+        # Buscar usuário por WhatsApp
+        user = await db.users.find_one({"whatsapp": credentials.whatsapp}, {"_id": 0})
         if not user or not verify_password(credentials.senha, user["senha"]):
-            raise HTTPException(status_code=401, detail="Email ou senha incorretos")
+            raise HTTPException(status_code=401, detail="WhatsApp ou senha incorretos")
         
         # Verificar se está ativo
         if user["status"] == UserStatus.PENDENTE.value:
             raise HTTPException(status_code=403, detail="Sua conta ainda está pendente de aprovação")
         
-        # Criar token
-        access_token = create_access_token(data={"sub": user["id"], "email": user["email"], "role": user["role"]})
+        # Criar token com funções DARPE
+        access_token = create_access_token(data={
+            "sub": user["id"], 
+            "whatsapp": user["whatsapp"], 
+            "funcoes_darpe": user["funcoes_darpe"]
+        })
         
         user.pop("senha")
         return Token(access_token=access_token, user=User(**user))

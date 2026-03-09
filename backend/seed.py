@@ -27,25 +27,36 @@ async def seed_database():
     admin_password = pwd_context.hash("admin123")
     admin_user = {
         "id": "admin-001",
+        "whatsapp": "+55 47 99999-0001",
         "email": "admin@darpe.org",
         "senha": admin_password,
         "nome_completo": "Administrador DARPE",
-        "role": "secretario_regional",
+        "funcoes_darpe": ["Secretário Regional"],
         "status": "ativo",
         "cidade": "Itajaí",
+        "localidade": "DARPE Regional Itajaí",
         "unidades": [],
-        "ultimo_atendimento": None,
+        "ultimo_atendimento": datetime.now(timezone.utc).isoformat(),
         "foto_url": None,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
     # Verificar se admin já existe
-    existing_admin = await db.users.find_one({"email": admin_user["email"]})
+    existing_admin = await db.users.find_one({"whatsapp": admin_user["whatsapp"]})
     if not existing_admin:
         await db.users.insert_one(admin_user)
-        print("✅ Usuário admin criado: admin@darpe.org / admin123")
+        print("✅ Usuário admin criado: +55 47 99999-0001 / admin123")
     else:
-        print("ℹ️  Usuário admin já existe")
+        # Atualizar para garantir que está ativo
+        await db.users.update_one(
+            {"whatsapp": admin_user["whatsapp"]},
+            {"$set": {
+                "status": "ativo",
+                "funcoes_darpe": ["Secretário Regional"],
+                "ultimo_atendimento": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        print("ℹ️  Usuário admin já existe - status atualizado para ativo")
     
     # Limpar unidades fictícias antigas
     await db.units.delete_many({})
@@ -53,9 +64,9 @@ async def seed_database():
     
     print("\n✨ Seed concluído com sucesso!")
     print("\n📝 Credenciais de acesso:")
-    print("   Email: admin@darpe.org")
+    print("   WhatsApp: +55 47 99999-0001")
     print("   Senha: admin123")
-    print("   Role: Secretário Regional (acesso total)")
+    print("   Funções: Secretário Regional (acesso total)")
     print("\n⚠️  Sistema limpo - adicione unidades reais do DARPE pela interface administrativa\n")
     
     client.close()

@@ -11,19 +11,21 @@ const LoginPage = () => {
   const { login, register } = useAuth();
   const navigate = useNavigate();
 
-  const [loginData, setLoginData] = useState({ email: '', senha: '' });
+  const [loginData, setLoginData] = useState({ whatsapp: '', senha: '' });
   const [registerData, setRegisterData] = useState({
-    email: '',
+    whatsapp: '',
     senha: '',
     nome_completo: '',
-    role: 'atendente',
-    cidade: ''
+    funcoes_darpe: ['Atendente'],
+    cidade: '',
+    localidade: '',
+    email: ''
   });
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const result = await login(loginData.email, loginData.senha);
+    const result = await login(loginData.whatsapp, loginData.senha);
     setLoading(false);
 
     if (result.success) {
@@ -43,7 +45,7 @@ const LoginPage = () => {
     if (result.success) {
       toast.success('Registro realizado! Aguarde aprovação do administrador.');
       setIsLogin(true);
-      setRegisterData({ email: '', senha: '', nome_completo: '', role: 'atendente', cidade: '' });
+      setRegisterData({ whatsapp: '', senha: '', nome_completo: '', funcoes_darpe: ['Atendente'], cidade: '', localidade: '', email: '' });
     } else {
       toast.error(result.error);
     }
@@ -92,13 +94,13 @@ const LoginPage = () => {
             {isLogin ? (
               <form onSubmit={handleLogin} className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-slate-700 mb-2 block">Email</label>
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">WhatsApp</label>
                   <Input
-                    data-testid="login-email-input"
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={loginData.email}
-                    onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                    data-testid="login-whatsapp-input"
+                    type="tel"
+                    placeholder="+55 47 99999-9999"
+                    value={loginData.whatsapp}
+                    onChange={(e) => setLoginData({ ...loginData, whatsapp: e.target.value })}
                     required
                   />
                 </div>
@@ -125,7 +127,7 @@ const LoginPage = () => {
             ) : (
               <form onSubmit={handleRegister} className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-slate-700 mb-2 block">Nome Completo</label>
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">Nome Completo *</label>
                   <Input
                     data-testid="register-name-input"
                     type="text"
@@ -136,18 +138,28 @@ const LoginPage = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-700 mb-2 block">Email</label>
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">WhatsApp *</label>
+                  <Input
+                    data-testid="register-whatsapp-input"
+                    type="tel"
+                    placeholder="+55 47 99999-9999"
+                    value={registerData.whatsapp}
+                    onChange={(e) => setRegisterData({ ...registerData, whatsapp: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">Email (Opcional)</label>
                   <Input
                     data-testid="register-email-input"
                     type="email"
                     placeholder="seu@email.com"
                     value={registerData.email}
                     onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
-                    required
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-700 mb-2 block">Cidade</label>
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">Cidade *</label>
                   <Input
                     data-testid="register-city-input"
                     type="text"
@@ -158,7 +170,17 @@ const LoginPage = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-700 mb-2 block">Senha</label>
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">Localidade</label>
+                  <Input
+                    data-testid="register-locality-input"
+                    type="text"
+                    placeholder="Ex: Congregação Central"
+                    value={registerData.localidade}
+                    onChange={(e) => setRegisterData({ ...registerData, localidade: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">Senha *</label>
                   <Input
                     data-testid="register-password-input"
                     type="password"
