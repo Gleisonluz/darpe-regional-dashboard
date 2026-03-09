@@ -35,34 +35,34 @@ export const authApi = {
 // Users API
 export const usersApi = {
   getAll: (params) => api.get('/users/', { params }),
-  getOne: (id) => api.get(`/users/${id}`),
-  update: (id, data) => api.put(`/users/${id}`, data),
-  approve: (id) => api.post(`/users/${id}/approve`),
-  reactivate: (id) => api.post(`/users/${id}/reactivate`),
+  getOne: (id) => api.get(`/users/${id}/`),
+  update: (id, data) => api.put(`/users/${id}/`, data),
+  approve: (id) => api.post(`/users/${id}/approve/`),
+  reactivate: (id) => api.post(`/users/${id}/reactivate/`),
 };
 
 // Units API
 export const unitsApi = {
   getAll: () => api.get('/units/'),
   create: (data) => api.post('/units/', data),
-  update: (id, data) => api.put(`/units/${id}`, data),
-  delete: (id) => api.delete(`/units/${id}`),
-  addResponsavel: (unitId, userId) => api.post(`/units/${unitId}/responsaveis/${userId}`),
-  removeResponsavel: (unitId, userId) => api.delete(`/units/${unitId}/responsaveis/${userId}`),
+  update: (id, data) => api.put(`/units/${id}/`, data),
+  delete: (id) => api.delete(`/units/${id}/`),
+  addResponsavel: (unitId, userId) => api.post(`/units/${unitId}/responsaveis/${userId}/`),
+  removeResponsavel: (unitId, userId) => api.delete(`/units/${unitId}/responsaveis/${userId}/`),
 };
 
 // Attendance API
 export const attendanceApi = {
   register: (data) => api.post('/attendance/', data),
-  getMyRecords: () => api.get('/attendance/my-records'),
-  getUnitRecords: (unitId) => api.get(`/attendance/unit/${unitId}`),
+  getMyRecords: () => api.get('/attendance/my-records/'),
+  getUnitRecords: (unitId) => api.get(`/attendance/unit/${unitId}/`),
 };
 
 // Service API
 export const serviceApi = {
   register: (data) => api.post('/services/', data),
   getAll: (params) => api.get('/services/', { params }),
-  getOne: (id) => api.get(`/services/${id}`),
+  getOne: (id) => api.get(`/services/${id}/`),
 };
 
 // Credential API
@@ -73,18 +73,18 @@ export const credentialApi = {
 // Notifications API
 export const notificationsApi = {
   getAll: () => api.get('/notifications/'),
-  getUnreadCount: () => api.get('/notifications/unread-count'),
-  markAsRead: (id) => api.put(`/notifications/${id}/read`),
-  markAllAsRead: () => api.put('/notifications/read-all'),
+  getUnreadCount: () => api.get('/notifications/unread-count/'),
+  markAsRead: (id) => api.put(`/notifications/${id}/read/`),
+  markAllAsRead: () => api.put('/notifications/read-all/'),
 };
 
 // Reports API
 export const reportsApi = {
-  attendanceByCity: () => api.get('/reports/attendance-by-city'),
-  attendanceByUnit: () => api.get('/reports/attendance-by-unit'),
-  activeAttendees: () => api.get('/reports/active-attendees'),
-  inactiveAttendees: () => api.get('/reports/inactive-attendees'),
-  agenda: () => api.get('/reports/agenda'),
+  attendanceByCity: () => api.get('/reports/attendance-by-city/'),
+  attendanceByUnit: () => api.get('/reports/attendance-by-unit/'),
+  activeAttendees: () => api.get('/reports/active-attendees/'),
+  inactiveAttendees: () => api.get('/reports/inactive-attendees/'),
+  agenda: () => api.get('/reports/agenda/'),
 };
 
 // Upload API
@@ -92,7 +92,7 @@ export const uploadApi = {
   uploadPhoto: (file) => {
     const formData = new FormData();
     formData.append('file', file);
-    return api.post('/upload/photo', formData, {
+    return api.post('/upload/photo/', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
