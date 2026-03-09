@@ -1,0 +1,171 @@
+{
+  "design_system": {
+    "identity": {
+      "name": "DARPE Regional Itajaí",
+      "tone": "Institutional, Professional, Trustworthy, Serene, Modern",
+      "archetype": "Institutional Purity (Custom Mix of Swiss & Organic)",
+      "theme": "light",
+      "keywords": ["Clarity", "Faith", "Organization", "Community", "Light"]
+    },
+    "typography": {
+      "font_family": {
+        "heading": ["Outfit", "sans-serif"],
+        "body": ["DM Sans", "sans-serif"],
+        "mono": ["JetBrains Mono", "monospace"]
+      },
+      "scale": {
+        "h1": "text-4xl md:text-5xl font-bold tracking-tight text-slate-900",
+        "h2": "text-3xl md:text-4xl font-semibold tracking-tight text-slate-800",
+        "h3": "text-2xl font-medium text-slate-800",
+        "body_lg": "text-lg leading-relaxed text-slate-600",
+        "body": "text-base leading-relaxed text-slate-600",
+        "small": "text-sm text-slate-500",
+        "tiny": "text-xs font-medium uppercase tracking-wider text-slate-400"
+      },
+      "imports": [
+        "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=DM+Sans:opsz,wght@9..40,400;500;700&display=swap"
+      ]
+    },
+    "colors": {
+      "palette": {
+        "primary": {
+          "DEFAULT": "#334155", 
+          "foreground": "#FFFFFF",
+          "description": "Deep Slate Blue - Authority, Trust"
+        },
+        "secondary": {
+          "DEFAULT": "#F1F5F9", 
+          "foreground": "#0F172A",
+          "description": "Soft Blue-Gray - Backgrounds"
+        },
+        "accent": {
+          "DEFAULT": "#0EA5E9", 
+          "foreground": "#FFFFFF",
+          "description": "Sky Blue - Highlights, Actions"
+        },
+        "muted": {
+          "DEFAULT": "#F8FAFC", 
+          "foreground": "#64748B",
+          "description": "Off-White - Cards, Surfaces"
+        },
+        "background": "#F8FAFC",
+        "foreground": "#0F172A",
+        "border": "#E2E8F0",
+        "success": "#10B981", 
+        "warning": "#F59E0B", 
+        "error": "#EF4444"
+      },
+      "gradients": {
+        "brand": "bg-gradient-to-br from-slate-800 to-slate-900",
+        "card_active": "bg-gradient-to-br from-sky-50 to-white",
+        "overlay": "bg-slate-900/10 backdrop-blur-sm"
+      }
+    },
+    "spacing": {
+      "container_padding": "p-4 md:p-8 lg:p-12",
+      "section_gap": "gap-8 md:gap-12",
+      "component_gap": "gap-4",
+      "radius": {
+        "default": "rounded-lg",
+        "card": "rounded-xl",
+        "button": "rounded-full"
+      }
+    },
+    "shadows": {
+      "card": "shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-shadow duration-300",
+      "floating": "shadow-[0_12px_32px_rgba(0,0,0,0.1)]",
+      "inner": "shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
+    }
+  },
+  "layout_strategies": {
+    "public_area": {
+      "structure": "Single column mobile-first stack. Clean hero section with search. Cards for 'Unidades'.",
+      "grid": "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6",
+      "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+    },
+    "admin_dashboard": {
+      "structure": "Bento Grid (refer to persona guidelines). Sidebar navigation on desktop, bottom sheet on mobile.",
+      "grid": "grid grid-cols-1 md:grid-cols-12 gap-6",
+      "widgets": {
+        "summary": "col-span-1 md:col-span-3 bg-white p-6 rounded-xl border border-slate-100",
+        "chart": "col-span-1 md:col-span-6 row-span-2 bg-white p-6 rounded-xl border border-slate-100",
+        "list": "col-span-1 md:col-span-3 row-span-2 bg-white p-0 rounded-xl border border-slate-100 overflow-hidden"
+      }
+    },
+    "digital_credential": {
+      "structure": "Mobile-optimized vertical card. Aspect ratio similar to ID card (approx 1.58:1).",
+      "style": "bg-white border border-slate-200 rounded-2xl shadow-lg relative overflow-hidden. Must include watermark/guilloche pattern SVG background.",
+      "elements": "Photo (circle/rounded-square), Name (Outfit Bold), Role (Uppercased), Status Pill, QR Code (Bottom).",
+      "interaction": "Tap to flip (reveal details/history)."
+    }
+  },
+  "components": {
+    "Button": {
+      "variants": {
+        "primary": "bg-slate-800 hover:bg-slate-700 text-white shadow-sm rounded-full px-6 py-2.5 font-medium transition-all hover:scale-[1.02] active:scale-[0.98]",
+        "secondary": "bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm rounded-full px-6 py-2.5 font-medium transition-all",
+        "ghost": "hover:bg-slate-100 text-slate-600 rounded-lg px-4 py-2 font-medium"
+      }
+    },
+    "Card": {
+      "base": "bg-white border border-slate-100 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:border-slate-200 transition-colors",
+      "header": "p-6 border-b border-slate-50",
+      "content": "p-6",
+      "footer": "p-6 border-t border-slate-50 bg-slate-50/50"
+    },
+    "Input": {
+      "base": "h-11 rounded-lg border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+    },
+    "Badge": {
+      "variants": {
+        "success": "bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full px-2.5 py-0.5 text-xs font-semibold",
+        "warning": "bg-amber-50 text-amber-700 border border-amber-100 rounded-full px-2.5 py-0.5 text-xs font-semibold",
+        "error": "bg-rose-50 text-rose-700 border border-rose-100 rounded-full px-2.5 py-0.5 text-xs font-semibold",
+        "neutral": "bg-slate-100 text-slate-600 border border-slate-200 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+      }
+    },
+    "Navigation": {
+      "mobile": "Fixed bottom bar. Glassmorphism: bg-white/80 backdrop-blur-lg border-t border-slate-200.",
+      "desktop": "Sidebar or Topbar. Clean, minimal icons. Active state: bg-slate-100 text-slate-900."
+    }
+  },
+  "assets": {
+    "images": {
+      "login_bg": "https://images.unsplash.com/photo-1761870065047-f2da9429db23?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NjV8MHwxfHNlYXJjaHwxfHxtaW5pbWFsaXN0JTIwd2hpdGUlMjBibHVlJTIwYWJzdHJhY3QlMjBhcmNoaXRlY3R1cmUlMjBnZW9tZXRyaWN8ZW58MHx8fHwxNzczMDgyMjg1fDA&ixlib=rb-4.1.0&q=85",
+      "hero_bg": "https://images.unsplash.com/photo-1769597744764-6f19062ee1fb?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NjV8MHwxfHNlYXJjaHwyfHxtaW5pbWFsaXN0JTIwd2hpdGUlMjBibHVlJTIwYWJzdHJhY3QlMjBhcmNoaXRlY3R1cmUlMjBnZW9tZXRyaWN8ZW58MHx8fHwxNzczMDgyMjg1fDA&ixlib=rb-4.1.0&q=85",
+      "placeholder_avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+    },
+    "icons": {
+      "library": "lucide-react",
+      "preferred": ["Church", "User", "Calendar", "ClipboardList", "QrCode", "ShieldCheck", "LogOut", "Menu", "X", "Search", "Filter"]
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": "backdrop-filter backdrop-blur-md bg-white/70 border border-white/20",
+    "micro_interactions": "All interactive elements must scale slightly (0.98) on click. Hover states should lift elements (-2px).",
+    "patterns": "Use subtle geometric SVG patterns (dots, grid lines) in very light slate (#F1F5F9) on white backgrounds to break monotony without adding noise."
+  },
+  "accessibility": {
+    "contrast": "Ensure all text meets WCAG AA. Use Slate-600 or darker for body text on white. Never use Slate-400 for essential text.",
+    "focus": "Visible focus rings (ring-2 ring-slate-400) on all interactive elements.",
+    "semantic_html": "Use <header>, <main>, <nav>, <footer>, <article>, <section>.",
+    "labels": "All inputs must have visible labels or aria-labels. All icons must have aria-hidden or aria-label."
+  },
+  "instructions_to_main_agent": [
+    "INSTALL FONTS: Add the Google Fonts import to index.css immediately.",
+    "CONFIGURE TAILWIND: Update tailwind.config.js with the custom colors (slate-800 as primary, sky-500 as accent) and font families (Outfit, DM Sans).",
+    "USE SHADCN: Use Shadcn UI components as the base, but OVERRIDE the default 'zinc' look with our 'slate/blue' palette.",
+    "MOBILE FIRST: Design the Public Area and Credential View for mobile screens first. They must be touch-friendly (44px min tap targets).",
+    "DIGITAL CREDENTIAL: This is the core feature. Make it look like a premium Apple Wallet pass. Use a subtle gradient border or shadow to give it depth.",
+    "DATA-TESTID: Add data-testid to every interactive element (buttons, inputs, cards) for testing."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Do not use generic centered layouts. Use Bento grids.",
+    "Use 2-3x more spacing than typical designs.",
+    "Every interaction needs micro-animations.",
+    "Never use 'Inter' for headings.",
+    "Use 'sonner' for toasts.",
+    "Components MUST use named exports.",
+    "Pages MUST use default exports."
+  ]
+}
