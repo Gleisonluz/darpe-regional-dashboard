@@ -3,14 +3,16 @@ import { Sidebar } from '@/components/Sidebar';
 import { TopBar } from '@/components/TopBar';
 import { usersApi } from '@/utils/api';
 import { Button } from '@/components/ui/button';
-import { UserCheck, UserX, Users as UsersIcon } from 'lucide-react';
+import { UserCheck, UserX, Users as UsersIcon, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { UserFormModal } from '@/components/modals/UserFormModal';
 
 const UsersPage = () => {
   const [users, setUsers] = useState([]);
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     loadUsers();
@@ -72,9 +74,14 @@ const UsersPage = () => {
         <TopBar onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)} />
         <main className="flex-1 p-4 md:p-8">
           <div className="max-w-6xl mx-auto">
-            <div className="mb-8">
-              <h1 className="text-3xl font-heading font-bold text-slate-900 mb-2">Colaboradores</h1>
-              <p className="text-slate-600">Gerencie colaboradores e aprovações</p>
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <h1 className="text-3xl font-heading font-bold text-slate-900 mb-2">Colaboradores</h1>
+                <p className="text-slate-600">Gerencie colaboradores e aprovações</p>
+              </div>
+              <Button onClick={() => setModalOpen(true)} data-testid="add-user-button" className="bg-accent hover:bg-accent/90 text-white rounded-full">
+                <Plus className="w-4 h-4 mr-2" /> Novo Colaborador
+              </Button>
             </div>
 
             <div className="flex gap-2 mb-6">
@@ -131,6 +138,12 @@ const UsersPage = () => {
             )}
           </div>
         </main>
+        
+        <UserFormModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          onSuccess={loadUsers}
+        />
       </div>
     </div>
   );
