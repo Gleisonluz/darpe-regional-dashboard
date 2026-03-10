@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -8,8 +8,16 @@ import { toast } from 'sonner';
 const LoginPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
-  const { login, register } = useAuth();
+  const { login, register, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  // Redirecionar se já estiver autenticado
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log('Usuário autenticado, redirecionando para dashboard...');
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const [loginData, setLoginData] = useState({ whatsapp: '', senha: '' });
   const [registerData, setRegisterData] = useState({
@@ -25,14 +33,21 @@ const LoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const result = await login(loginData.whatsapp, loginData.senha);
-    setLoading(false);
-
-    if (result.success) {
-      toast.success('Login realizado com sucesso!');
-      navigate('/dashboard');
-    } else {
-      toast.error(result.error);
+    
+    try {
+      const result = await login(loginData.whatsapp, loginData.senha);
+      
+      if (result.success) {
+        toast.success('Login realizado com sucesso!');
+        // O redirecionamento será feito pelo useEffect quando isAuthenticated mudar
+      } else {
+        toast.error(result.error);
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Erro no handleLogin:', error);
+      toast.error('Erro ao fazer login');
+      setLoading(false);
     }
   };
 

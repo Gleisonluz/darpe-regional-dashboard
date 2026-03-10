@@ -27,7 +27,7 @@ async def seed_database():
     admin_password = pwd_context.hash("admin123")
     admin_user = {
         "id": "admin-001",
-        "whatsapp": "+55 47 99999-0001",
+        "whatsapp": "+5547999990001",  # Formato normalizado
         "email": "admin@darpe.org",
         "senha": admin_password,
         "nome_completo": "Administrador DARPE",
@@ -45,7 +45,7 @@ async def seed_database():
     existing_admin = await db.users.find_one({"whatsapp": admin_user["whatsapp"]})
     if not existing_admin:
         await db.users.insert_one(admin_user)
-        print("✅ Usuário admin criado: +55 47 99999-0001 / admin123")
+        print("✅ Usuário admin criado: +5547999990001 / admin123")
     else:
         # Atualizar para garantir que está ativo
         await db.users.update_one(
@@ -64,7 +64,7 @@ async def seed_database():
     
     print("\n✨ Seed concluído com sucesso!")
     print("\n📝 Credenciais de acesso:")
-    print("   WhatsApp: +55 47 99999-0001")
+    print("   WhatsApp: +5547999990001 (aceita também: +55 47 99999-0001, (47)99999-0001, etc.)")
     print("   Senha: admin123")
     print("   Funções: Secretário Regional (acesso total)")
     print("\n⚠️  Sistema limpo - adicione unidades reais do DARPE pela interface administrativa\n")

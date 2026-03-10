@@ -105,14 +105,21 @@ const UsersPage = () => {
                         <div className="flex items-center justify-between gap-4">
                           <div className="flex items-center gap-3 flex-1">
                             <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center text-accent font-semibold">
-                              {user.nome_completo.charAt(0)}
+                              {user.nome_completo ? user.nome_completo.charAt(0) : '?'}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-slate-900 truncate">{user.nome_completo}</p>
-                              <p className="text-sm text-slate-600 truncate">{user.email}</p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-xs text-slate-500 capitalize">{user.role.replace('_', ' ')}</span>
+                              <p className="font-medium text-slate-900 truncate">{user.nome_completo || 'Nome não informado'}</p>
+                              <p className="text-sm text-slate-600 truncate">{user.whatsapp || user.email || 'Sem contato'}</p>
+                              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                {user.funcoes_darpe && user.funcoes_darpe.length > 0 ? (
+                                  user.funcoes_darpe.map((funcao, idx) => (
+                                    <span key={idx} className="text-xs text-slate-500">{funcao}</span>
+                                  ))
+                                ) : (
+                                  <span className="text-xs text-slate-500">Atendente</span>
+                                )}
                                 {user.cidade && <span className="text-xs text-slate-500">• {user.cidade}</span>}
+                                {user.localidade && <span className="text-xs text-slate-500">• {user.localidade}</span>}
                               </div>
                             </div>
                           </div>

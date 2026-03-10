@@ -5,7 +5,7 @@ import json
 from datetime import datetime
 
 class DarpeApiTester:
-    def __init__(self, base_url="https://darpe-dashboard.preview.emergentagent.com"):
+    def __init__(self, base_url="https://service-portal-137.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.headers = {'Content-Type': 'application/json'}

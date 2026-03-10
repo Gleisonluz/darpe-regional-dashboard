@@ -4,6 +4,7 @@ from models import *
 from security import get_password_hash, verify_password, create_access_token, get_current_user
 from qrcode_gen import generate_qr_code
 from inactivity_check import check_and_update_inactive_users
+from phone_utils import normalize_phone
 import uuid
 from datetime import datetime, timezone
 import base64
@@ -14,14 +15,18 @@ def create_auth_router(db: AsyncIOMotorDatabase) -> APIRouter:
     
     @router.post("/register", response_model=User)
     async def register(user_data: UserCreate):
+        # Normalizar WhatsApp
+        normalized_whatsapp = normalize_phone(user_data.whatsapp)
+        
         # Verificar se WhatsApp já existe
-        existing_user = await db.users.find_one({"whatsapp": user_data.whatsapp}, {"_id": 0})
+        existing_user = await db.users.find_one({"whatsapp": normalized_whatsapp}, {"_id": 0})
         if existing_user:
             raise HTTPException(status_code=400, detail="WhatsApp já cadastrado")
         
         # Criar usuário
         user_dict = user_data.model_dump()
         user_dict["id"] = str(uuid.uuid4())
+        user_dict["whatsapp"] = normalized_whatsapp  # Salvar normalizado
         user_dict["senha"] = get_password_hash(user_data.senha)
         user_dict["status"] = UserStatus.PENDENTE.value
         user_dict["unidades"] = []
@@ -36,8 +41,11 @@ def create_auth_router(db: AsyncIOMotorDatabase) -> APIRouter:
     
     @router.post("/login", response_model=Token)
     async def login(credentials: UserLogin):
-        # Buscar usuário por WhatsApp
-        user = await db.users.find_one({"whatsapp": credentials.whatsapp}, {"_id": 0})
+        # Normalizar WhatsApp antes de buscar
+        normalized_whatsapp = normalize_phone(credentials.whatsapp)
+        
+        # Buscar usuário por WhatsApp normalizado
+        user = await db.users.find_one({"whatsapp": normalized_whatsapp}, {"_id": 0})
         if not user or not verify_password(credentials.senha, user["senha"]):
             raise HTTPException(status_code=401, detail="WhatsApp ou senha incorretos")
         
