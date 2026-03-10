@@ -20,11 +20,11 @@ async def fix_admin_account():
     
     print("🔧 Corrigindo conta de administrador...")
     
-    # Buscar e atualizar a conta admin
-    admin_email = "admin@darpe.org"
+    # Buscar e atualizar a conta admin pelo WhatsApp
+    admin_whatsapp = "+5547999990001"
     
     result = await db.users.update_one(
-        {"email": admin_email},
+        {"whatsapp": admin_whatsapp},
         {
             "$set": {
                 "status": "ativo",
@@ -34,18 +34,21 @@ async def fix_admin_account():
     )
     
     if result.modified_count > 0:
-        print(f"✅ Conta {admin_email} reativada e desbloqueada com sucesso!")
+        print(f"✅ Conta {admin_whatsapp} reativada e desbloqueada com sucesso!")
     else:
-        print(f"ℹ️  Conta {admin_email} já estava ativa")
+        print(f"ℹ️  Conta {admin_whatsapp} já estava ativa")
     
     # Verificar o status atual
-    admin = await db.users.find_one({"email": admin_email}, {"_id": 0, "email": 1, "nome_completo": 1, "status": 1, "role": 1})
+    admin = await db.users.find_one(
+        {"whatsapp": admin_whatsapp}, 
+        {"_id": 0, "whatsapp": 1, "nome_completo": 1, "status": 1, "funcoes_darpe": 1}
+    )
     
     if admin:
         print(f"\n📋 Status da conta:")
-        print(f"   Email: {admin['email']}")
+        print(f"   WhatsApp: {admin['whatsapp']}")
         print(f"   Nome: {admin['nome_completo']}")
-        print(f"   Role: {admin['role']}")
+        print(f"   Funções: {admin.get('funcoes_darpe', [])}")
         print(f"   Status: {admin['status']}")
         
         if admin['status'] == 'ativo':
@@ -53,15 +56,18 @@ async def fix_admin_account():
         else:
             print(f"\n⚠️  ATENÇÃO: Conta ainda está com status: {admin['status']}")
     else:
-        print(f"\n❌ Conta {admin_email} não encontrada no banco de dados")
+        print(f"\n❌ Conta {admin_whatsapp} não encontrada no banco de dados")
     
     # Listar usuários pendentes
-    pending_users = await db.users.find({"status": "pendente"}, {"_id": 0, "email": 1, "nome_completo": 1}).to_list(None)
+    pending_users = await db.users.find(
+        {"status": "pendente"}, 
+        {"_id": 0, "whatsapp": 1, "nome_completo": 1}
+    ).to_list(None)
     
     if pending_users:
         print(f"\n👥 Usuários pendentes de aprovação ({len(pending_users)}):")
         for user in pending_users:
-            print(f"   - {user['nome_completo']} ({user['email']})")
+            print(f"   - {user['nome_completo']} ({user.get('whatsapp', 'N/A')})")
     else:
         print(f"\n✓ Nenhum usuário pendente de aprovação")
     

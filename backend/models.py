@@ -47,7 +47,6 @@ class UserBase(BaseModel):
     funcoes_darpe: List[DarpeFuncao]
     cidade: str
     localidade: Optional[str] = None
-    email: Optional[str] = None
     foto_url: Optional[str] = None
 
 class UserCreate(UserBase):
@@ -57,7 +56,6 @@ class UserUpdate(BaseModel):
     nome_completo: Optional[str] = None
     cidade: Optional[str] = None
     localidade: Optional[str] = None
-    email: Optional[str] = None
     foto_url: Optional[str] = None
     funcoes_darpe: Optional[List[DarpeFuncao]] = None
     status: Optional[UserStatus] = None

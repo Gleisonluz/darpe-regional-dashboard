@@ -178,16 +178,38 @@ const CredentialPage = () => {
                     {/* Informações */}
                     <div className="space-y-3 mb-6">
                       <div className="flex justify-between py-2 border-b border-slate-100">
-                        <span className="text-sm text-slate-600">Função:</span>
-                        <span className="text-sm font-medium text-slate-900 capitalize">
-                          {credential.user.role.replace('_', ' ')}
+                        <span className="text-sm text-slate-600">WhatsApp:</span>
+                        <span className="text-sm font-medium text-slate-900">
+                          {credential.user.whatsapp || 'Não informado'}
                         </span>
+                      </div>
+
+                      <div className="py-2 border-b border-slate-100">
+                        <span className="text-sm text-slate-600 block mb-2">Funções DARPE:</span>
+                        <div className="flex flex-wrap gap-1">
+                          {credential.user.funcoes_darpe && credential.user.funcoes_darpe.length > 0 ? (
+                            credential.user.funcoes_darpe.map((funcao, idx) => (
+                              <span key={idx} className="text-xs bg-accent/10 text-accent px-2 py-1 rounded-full">
+                                {funcao}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-sm text-slate-500">Atendente</span>
+                          )}
+                        </div>
                       </div>
                       
                       {credential.user.cidade && (
                         <div className="flex justify-between py-2 border-b border-slate-100">
-                          <span className="text-sm text-slate-600">Localidade:</span>
+                          <span className="text-sm text-slate-600">Cidade:</span>
                           <span className="text-sm font-medium text-slate-900">{credential.user.cidade}</span>
+                        </div>
+                      )}
+
+                      {credential.user.localidade && (
+                        <div className="flex justify-between py-2 border-b border-slate-100">
+                          <span className="text-sm text-slate-600">Localidade:</span>
+                          <span className="text-sm font-medium text-slate-900">{credential.user.localidade}</span>
                         </div>
                       )}
 

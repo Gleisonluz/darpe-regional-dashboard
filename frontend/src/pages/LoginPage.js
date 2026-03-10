@@ -26,8 +26,7 @@ const LoginPage = () => {
     nome_completo: '',
     funcoes_darpe: ['Atendente'],
     cidade: '',
-    localidade: '',
-    email: ''
+    localidade: ''
   });
 
   const handleLogin = async (e) => {
@@ -60,7 +59,7 @@ const LoginPage = () => {
     if (result.success) {
       toast.success('Registro realizado! Aguarde aprovação do administrador.');
       setIsLogin(true);
-      setRegisterData({ whatsapp: '', senha: '', nome_completo: '', funcoes_darpe: ['Atendente'], cidade: '', localidade: '', email: '' });
+      setRegisterData({ whatsapp: '', senha: '', nome_completo: '', funcoes_darpe: ['Atendente'], cidade: '', localidade: '' });
     } else {
       toast.error(result.error);
     }
@@ -161,16 +160,6 @@ const LoginPage = () => {
                     value={registerData.whatsapp}
                     onChange={(e) => setRegisterData({ ...registerData, whatsapp: e.target.value })}
                     required
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-slate-700 mb-2 block">Email (Opcional)</label>
-                  <Input
-                    data-testid="register-email-input"
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={registerData.email}
-                    onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                   />
                 </div>
                 <div>

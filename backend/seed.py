@@ -28,7 +28,6 @@ async def seed_database():
     admin_user = {
         "id": "admin-001",
         "whatsapp": "+5547999990001",  # Formato normalizado
-        "email": "admin@darpe.org",
         "senha": admin_password,
         "nome_completo": "Administrador DARPE",
         "funcoes_darpe": ["Secretário Regional"],

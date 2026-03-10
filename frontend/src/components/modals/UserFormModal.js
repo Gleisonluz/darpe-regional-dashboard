@@ -12,32 +12,33 @@ const cidades = [
   'Ilhota', 'Guabiruba', 'Botuverá', 'Nova Trento', 'Brusque', 'Blumenau'
 ];
 
-const roles = [
-  { value: 'atendente', label: 'Atendente' },
-  { value: 'secretario_local', label: 'Secretário Local' },
-  { value: 'secretario_regional', label: 'Secretário Regional' },
-  { value: 'anciao_coordenador', label: 'Ancião Coordenador' },
-  { value: 'consulta', label: 'Consulta' }
+const funcoesDarpe = [
+  { value: 'Atendente', label: 'Atendente' },
+  { value: 'Secretário Local', label: 'Secretário Local' },
+  { value: 'Secretário Regional', label: 'Secretário Regional' },
+  { value: 'Ancião Coordenador', label: 'Ancião Coordenador' }
 ];
 
 export const UserFormModal = ({ open, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
+    whatsapp: '',
     nome_completo: '',
     senha: '',
     cidade: '',
-    role: 'atendente'
+    localidade: '',
+    funcoes_darpe: ['Atendente']
   });
 
   useEffect(() => {
     if (!open) {
       setFormData({
-        email: '',
+        whatsapp: '',
         nome_completo: '',
         senha: '',
         cidade: '',
-        role: 'atendente'
+        localidade: '',
+        funcoes_darpe: ['Atendente']
       });
     }
   }, [open]);
@@ -45,7 +46,7 @@ export const UserFormModal = ({ open, onClose, onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.email || !formData.nome_completo || !formData.senha || !formData.cidade) {
+    if (!formData.whatsapp || !formData.nome_completo || !formData.senha || !formData.cidade) {
       toast.error('Preencha todos os campos obrigatórios');
       return;
     }
@@ -84,13 +85,13 @@ export const UserFormModal = ({ open, onClose, onSuccess }) => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-slate-700 mb-2 block">Email *</label>
+            <label className="text-sm font-medium text-slate-700 mb-2 block">WhatsApp *</label>
             <Input
-              data-testid="user-email-input"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="email@exemplo.com"
+              data-testid="user-whatsapp-input"
+              type="tel"
+              value={formData.whatsapp}
+              onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+              placeholder="+55 47 99999-9999"
               required
             />
           </div>
@@ -122,14 +123,27 @@ export const UserFormModal = ({ open, onClose, onSuccess }) => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-slate-700 mb-2 block">Função *</label>
-            <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
-              <SelectTrigger data-testid="user-role-select">
+            <label className="text-sm font-medium text-slate-700 mb-2 block">Localidade</label>
+            <Input
+              data-testid="user-locality-input"
+              value={formData.localidade}
+              onChange={(e) => setFormData({ ...formData, localidade: e.target.value })}
+              placeholder="Ex: Congregação Central"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-slate-700 mb-2 block">Função DARPE *</label>
+            <Select 
+              value={formData.funcoes_darpe[0]} 
+              onValueChange={(value) => setFormData({ ...formData, funcoes_darpe: [value] })}
+            >
+              <SelectTrigger data-testid="user-function-select">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {roles.map((role) => (
-                  <SelectItem key={role.value} value={role.value}>{role.label}</SelectItem>
+                {funcoesDarpe.map((funcao) => (
+                  <SelectItem key={funcao.value} value={funcao.value}>{funcao.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

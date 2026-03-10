@@ -109,7 +109,7 @@ const UsersPage = () => {
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-slate-900 truncate">{user.nome_completo || 'Nome não informado'}</p>
-                              <p className="text-sm text-slate-600 truncate">{user.whatsapp || user.email || 'Sem contato'}</p>
+                              <p className="text-sm text-slate-600 truncate">{user.whatsapp || 'Sem contato'}</p>
                               <div className="flex items-center gap-2 mt-1 flex-wrap">
                                 {user.funcoes_darpe && user.funcoes_darpe.length > 0 ? (
                                   user.funcoes_darpe.map((funcao, idx) => (
