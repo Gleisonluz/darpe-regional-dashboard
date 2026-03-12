@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from motor.motor_asyncio import AsyncIOMotorDatabase
-from backend.models import UserStatus
+from models import UserStatus
 async def check_and_update_inactive_users(db: AsyncIOMotorDatabase):
     """
     Verifica usuários inativos (mais de 90 dias sem registrar presença)
