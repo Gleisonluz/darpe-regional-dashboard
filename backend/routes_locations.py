@@ -1,10 +1,27 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from typing import List
 from uuid import uuid4
 from datetime import datetime
 from pydantic import BaseModel
+from motor.motor_asyncio import AsyncIOMotorClient
+import os
 
 router = APIRouter()
+
+# conexão com MongoDB
+MONGO_URL = os.getenv("MONGO_URL")
+DB_NAME = os.getenv("DB_NAME")
+
+print("Mongo URL:", MONGO_URL)
+print("DB Name:", DB_NAME)
+
+client = AsyncIOMotorClient(MONGO_URL)
+
+db = client[DB_NAME]
+
+locations_collection = db["locations"]
+
+
 class LocationCreate(BaseModel):
     setor: str
     tipo_local: str
@@ -12,16 +29,17 @@ class LocationCreate(BaseModel):
     cidade: str
     tipos_servico_permitidos: List[str] = []
 
-# Simulação inicial (depois vai para o banco)
-locations_db = []
 
 @router.get("/locations")
-def list_locations():
-    return locations_db
+async def list_locations():
+
+    locations = await locations_collection.find({}, {"_id": 0}).to_list(1000)
+
+    return locations
 
 
 @router.post("/locations")
-def create_location(data: LocationCreate):
+async def create_location(data: LocationCreate):
 
     location = {
         "id": str(uuid4()),
@@ -31,9 +49,9 @@ def create_location(data: LocationCreate):
         "cidade": data.cidade,
         "tipos_servico_permitidos": data.tipos_servico_permitidos,
         "ativo": True,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow().isoformat()
     }
 
-    locations_db.append(location)
+    await locations_collection.insert_one(location)
 
     return location

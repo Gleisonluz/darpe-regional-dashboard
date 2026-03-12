@@ -8,8 +8,7 @@ from pathlib import Path
 from textwrap import wrap
 from datetime import datetime
 
-from routes_mission_reports import mission_reports_db
-
+from backend.routes_mission_reports import mission_reports_db
 router = APIRouter()
 
 BASE_DIR = Path(__file__).resolve().parent

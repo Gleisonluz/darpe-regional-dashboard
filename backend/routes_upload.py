@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from motor.motor_asyncio import AsyncIOMotorDatabase
-from security import get_current_user
+from backend.security import get_current_user
 import base64
 import uuid
 import os
@@ -17,6 +17,7 @@ def create_upload_router(db: AsyncIOMotorDatabase) -> APIRouter:
 
     @router.post("/photo")
     async def upload_photo(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+
         # Validar tipo de arquivo
         if not file.content_type or not file.content_type.startswith("image/"):
             raise HTTPException(status_code=400, detail="Apenas imagens são permitidas")
@@ -38,6 +39,9 @@ def create_upload_router(db: AsyncIOMotorDatabase) -> APIRouter:
             {"$set": {"foto_url": image_url}}
         )
 
-        return {"foto_url": image_url, "message": "Foto enviada com sucesso"}
+        return {
+            "foto_url": image_url,
+            "message": "Foto enviada com sucesso"
+        }
 
     return router
