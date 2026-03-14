@@ -3,22 +3,22 @@ from typing import List
 from uuid import uuid4
 from datetime import datetime
 from pydantic import BaseModel
-from motor.motor_asyncio import AsyncIOMotorClient
-import os
+from fastapi import APIRouter, Depends
+from typing import List
+from uuid import uuid4
+from datetime import datetime
+from pydantic import BaseModel
+from motor.motor_asyncio import AsyncIOMotorDatabase
+from backend.server import get_database
 
-router = APIRouter()
 
-# conexão com MongoDB
-MONGO_URL = os.getenv("MONGO_URL")
-DB_NAME = os.getenv("DB_NAME")
 
-print("MongoDB configurado")
-print("Database:", DB_NAME)
 
-client = AsyncIOMotorClient(MONGO_URL)
-db = client[DB_NAME]
 
-locations_collection = db["locations"]
+
+
+
+
 
 
 class LocationCreate(BaseModel):
@@ -30,15 +30,15 @@ class LocationCreate(BaseModel):
 
 
 @router.get("/locations")
-async def list_locations():
+async def list_locations(db: AsyncIOMotorDatabase = Depends(get_database)):
 
-    locations = await locations_collection.find({}, {"_id": 0}).to_list(1000)
+    locations = await db["locations"].find({}, {"_id": 0}).to_list(1000)
 
     return locations
 
 
 @router.post("/locations")
-async def create_location(data: LocationCreate):
+async def create_location(data: LocationCreate, db: AsyncIOMotorDatabase = Depends(get_database)):
 
     location = {
         "id": str(uuid4()),
@@ -51,6 +51,6 @@ async def create_location(data: LocationCreate):
         "created_at": datetime.utcnow().isoformat()
     }
 
-    await locations_collection.insert_one(location)
+    await db["locations"].insert_one(location)
 
     return location
