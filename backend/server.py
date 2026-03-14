@@ -24,6 +24,7 @@ from routes_mission_reports import router as mission_reports_router
 from routes_mission_reports_summary_pdf import (
     router as mission_reports_summary_pdf_router,
 )
+from routes_locations import router as locations_router
 from routes_auth_public import create_auth_router, create_public_router
 from routes_admin import create_units_router, create_users_router
 from routes_features import (
