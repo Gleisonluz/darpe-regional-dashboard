@@ -3,16 +3,18 @@ from typing import List
 from uuid import uuid4
 from datetime import datetime
 from pydantic import BaseModel
-from fastapi import APIRouter, Depends
-from typing import List
-from uuid import uuid4
-from datetime import datetime
-from pydantic import BaseModel
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from motor.motor_asyncio import AsyncIOMotorClient
+import os
+
+router = APIRouter()
+
+MONGO_URL = os.getenv("MONGO_URL")
+DB_NAME = os.getenv("DB_NAME")
+
 client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
-locations_collection = db["locations"]
 
+locations_collection = db["locations"]
 
 
 
