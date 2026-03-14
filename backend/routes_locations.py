@@ -9,8 +9,9 @@ from uuid import uuid4
 from datetime import datetime
 from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorDatabase
-from backend.server import get_database
-
+client = AsyncIOMotorClient(MONGO_URL)
+db = client[DB_NAME]
+locations_collection = db["locations"]
 
 
 
