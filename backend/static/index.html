@@ -235,7 +235,7 @@
         <div class="form-group"><label class="form-label">Nome Completo</label><input type="text" id="c-nome" class="form-input" placeholder="Seu nome completo"/></div>
         <div class="form-group"><label class="form-label">Comum / Congregação</label><input type="text" id="c-comum" class="form-input" placeholder="Ex: Comum de Itajaí"/></div>
         <div class="form-group"><label class="form-label">WhatsApp</label><input type="tel" id="c-wpp" class="form-input" placeholder="(47) 99999-9999"/></div>
-        <div class="form-group"><label class="form-label">Cargo / Função</label><select id="c-cargo" class="form-select"><option value="">Selecione...</option></select></div>
+        <div class="form-group"><label class="form-label">Cargo / Fun&#231;&#227;o</label><div id="c-cargo-box" style="border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;background:var(--white);cursor:pointer;display:flex;justify-content:space-between;align-items:center;" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===`none`?`block`:`none`"><span id="c-cargo-label">Selecione...</span><span>&#9660;</span></div><div id="c-cargo-options" style="display:none;border:1px solid var(--border);border-radius:var(--radius);padding:8px;background:var(--white);margin-top:4px;max-height:200px;overflow-y:auto;"></div></div>
         <div id="outro-g" class="form-group" style="display:none"><label class="form-label">Especifique</label><input type="text" id="c-outro" class="form-input" placeholder="Descreva seu cargo"/></div>
         <div class="form-group"><label class="form-label">Senha</label><input type="password" id="c-pw" class="form-input" placeholder="Crie uma senha"/></div>
         <button class="btn-main" id="btn-cad" onclick="doCad()">Cadastrar</button>
@@ -453,10 +453,10 @@ async function loadCargos(){
   try{
     const r=await fetch(`${API}/colaboradores/cargos`);
     const d=await r.json();
-    const sel=document.getElementById('c-cargo');
-    d.cargos.forEach(c=>{const o=document.createElement('option');o.value=o.textContent=c;sel.appendChild(o);});
-    sel.onchange=()=>{document.getElementById('outro-g').style.display=sel.value==='Outro'?'block':'none';};
-  }catch(e){}
+        const box=document.getElementById("c-cargo-options");box.innerHTML="";d.cargos.forEach(c=>{const row=document.createElement("label");row.style="display:flex;align-items:center;gap:8px;padding:6px 4px;cursor:pointer;";const cb=document.createElement("input");cb.type="checkbox";cb.value=c;cb.onchange=()=>{const sel=[...box.querySelectorAll("input:checked")].map(x=>x.value);document.getElementById("c-cargo-label").textContent=sel.length?sel.join(", "):"Selecione...";document.getElementById("outro-g").style.display=sel.includes("Outro")?"block":"none";};row.appendChild(cb);row.appendChild(document.createTextNode(c));box.appendChild(row);});
+
+
+
 }
 async function doLogin(){
   const w=document.getElementById('l-wpp').value.trim(), s=document.getElementById('l-pw').value.trim();
@@ -474,13 +474,13 @@ async function doLogin(){
 }
 async function doCad(){
   const nome=document.getElementById('c-nome').value.trim(), comum=document.getElementById('c-comum').value.trim();
-  const w=document.getElementById('c-wpp').value.trim(), cargo=document.getElementById('c-cargo').value;
+        const w=document.getElementById("c-wpp").value.trim(), cargos=[...document.querySelectorAll("#c-cargo-options input:checked")].map(x=>x.value);
   const outro=document.getElementById('c-outro').value.trim(), s=document.getElementById('c-pw').value.trim();
   const err=document.getElementById('cad-err'); err.classList.remove('show');
   if(!nome||!comum||!w||!cargo||!s){err.textContent='Preencha todos os campos.';err.classList.add('show');return;}
   const btn=document.getElementById('btn-cad'); btn.innerHTML='<span class="spin"></span>';btn.disabled=true;
   try{
-    const body={nome_completo:nome,comum_congregacao:comum,whatsapp:w,senha:s,cargo_funcao_ministerio:cargo};
+    const body={nome_completo:nome,comum_congregacao:comum,whatsapp:w,senha:s,cargo_funcao_ministerio:cargos};
     if(cargo==='Outro') body.cargo_outro=outro;
     const r=await fetch(`${API}/colaboradores/cadastro`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const d=await r.json(); if(!r.ok) throw new Error(d.detail||'Erro ao cadastrar');
@@ -567,3 +567,4 @@ document.addEventListener('keydown',e=>{
 </script>
 </body>
 </html>
+

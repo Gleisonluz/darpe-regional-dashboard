@@ -12,11 +12,10 @@ router = APIRouter()
 MONGO_URL = os.getenv("MONGO_URL")
 DB_NAME = os.getenv("DB_NAME")
 
-print("Mongo URL:", MONGO_URL)
-print("DB Name:", DB_NAME)
+print("MongoDB configurado")
+print("Database:", DB_NAME)
 
 client = AsyncIOMotorClient(MONGO_URL)
-
 db = client[DB_NAME]
 
 locations_collection = db["locations"]
