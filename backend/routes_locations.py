@@ -1,21 +1,9 @@
 from fastapi import APIRouter
 from typing import List
 from uuid import uuid4
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import BaseModel
-from motor.motor_asyncio import AsyncIOMotorClient
-import os
-
-router = APIRouter()
-
-# conexão com MongoDB
-MONGO_URL = os.getenv("MONGO_URL")
-DB_NAME = os.getenv("DB_NAME")
-
-client = AsyncIOMotorClient(MONGO_URL)
-db = client[DB_NAME]
-
-locations_collection = db["locations"]
+from motor.motor_asyncio import AsyncIOMotorDatabase
 
 
 # -----------------------------
@@ -34,50 +22,49 @@ class LocationCreate(BaseModel):
     observacoes: str | None = None
 
 
-# -----------------------------
-# CRIAR LOCAL
-# -----------------------------
-@router.post("/locations")
-async def create_location(location: LocationCreate):
+def create_locations_router(db: AsyncIOMotorDatabase) -> APIRouter:
+    router = APIRouter(tags=["locations"])
 
-    location_data = location.dict()
+    # -----------------------------
+    # CRIAR LOCAL
+    # -----------------------------
+    @router.post("/locations")
+    async def create_location(location: LocationCreate):
+        location_data = location.model_dump()
+        location_data["id"] = str(uuid4())
+        location_data["created_at"] = datetime.now(timezone.utc).isoformat()
 
-    location_data["id"] = str(uuid4())
-    location_data["created_at"] = datetime.utcnow()
+        await db.locations.insert_one(location_data)
 
-    await locations_collection.insert_one(location_data)
+        # Remover _id do retorno
+        location_data.pop("_id", None)
 
-    return {
-        "status": "ok",
-        "message": "Local cadastrado com sucesso",
-        "data": location_data
-    }
+        return {
+            "status": "ok",
+            "message": "Local cadastrado com sucesso",
+            "data": location_data
+        }
 
+    # -----------------------------
+    # LISTAR LOCAIS
+    # -----------------------------
+    @router.get("/locations")
+    async def list_locations():
+        locations = []
+        async for location in db.locations.find({}, {"_id": 0}):
+            locations.append(location)
+        return locations
 
-# -----------------------------
-# LISTAR LOCAIS
-# -----------------------------
-@router.get("/locations")
-async def list_locations():
+    # -----------------------------
+    # DELETAR LOCAL
+    # -----------------------------
+    @router.delete("/locations/{location_id}")
+    async def delete_location(location_id: str):
+        result = await db.locations.delete_one({"id": location_id})
 
-    locations = []
+        if result.deleted_count == 0:
+            return {"status": "erro", "message": "Local não encontrado"}
 
-    async for location in locations_collection.find():
-        location["_id"] = str(location["_id"])
-        locations.append(location)
+        return {"status": "ok", "message": "Local removido"}
 
-    return locations
-
-
-# -----------------------------
-# DELETAR LOCAL
-# -----------------------------
-@router.delete("/locations/{location_id}")
-async def delete_location(location_id: str):
-
-    result = await locations_collection.delete_one({"id": location_id})
-
-    if result.deleted_count == 0:
-        return {"status": "erro", "message": "Local não encontrado"}
-
-    return {"status": "ok", "message": "Local removido"}
+    return router

@@ -24,7 +24,7 @@ from routes_mission_reports import router as mission_reports_router
 from routes_mission_reports_summary_pdf import (
     router as mission_reports_summary_pdf_router,
 )
-from routes_locations import router as locations_router
+from routes_locations import create_locations_router
 from routes_auth_public import create_auth_router, create_public_router
 from routes_admin import create_units_router, create_users_router
 from routes_features import (
@@ -35,7 +35,6 @@ from routes_features import (
     create_reports_router,
 )
 from routes_upload import create_upload_router
-from routes_locations import router as locations_router
 from routes_presences import router as presences_router
 from routes_attendance_results import router as attendance_results_router
 
@@ -78,7 +77,7 @@ api_router.include_router(create_credential_router(db))
 api_router.include_router(create_notifications_router(db))
 api_router.include_router(create_reports_router(db))
 api_router.include_router(create_upload_router(db))
-api_router.include_router(locations_router)
+api_router.include_router(create_locations_router(db))
 api_router.include_router(presences_router)
 api_router.include_router(attendance_results_router)
 api_router.include_router(mission_reports_router)
