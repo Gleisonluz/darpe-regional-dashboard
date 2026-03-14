@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
   <meta name="apple-mobile-web-app-title" content="DARPE"/>
   <title>DARPE Regional Itajaí</title>
-  <<link rel="manifest" href="/static/manifest.json">>
+  <link rel="manifest" href="manifest.json"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,700;0,800;1,400;1,500&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
@@ -522,7 +522,8 @@ async function doCad(){
   const w=document.getElementById('c-wpp').value.trim();
   const cargoEl=document.querySelector('input[name="cargo_funcao"]:checked');
   const cargo=cargoEl?cargoEl.value:'';
-  const outro=document.getElementById('c-outro').value.trim();
+  const outroEl=document.getElementById('c-outro');
+  const outro=outroEl ? outroEl.value.trim() : '';
   const s=document.getElementById('c-pw').value.trim();
 
   const err=document.getElementById('cad-err'); err.classList.remove('show');
