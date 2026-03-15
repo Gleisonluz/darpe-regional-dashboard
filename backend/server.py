@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
+from backend.inactivity_check import check_and_update_inactive_users
 
 # Caminhos do projeto
 ROOT_DIR = Path(__file__).parent
@@ -16,31 +17,30 @@ PROJECT_ROOT = ROOT_DIR.parent
 # Carregar variáveis do .env dentro da pasta backend
 load_dotenv(ROOT_DIR / ".env")
 
-from inactivity_check import check_and_update_inactive_users
-
+from backend.routes_mission_reports_pdf import router as mission_reports_pdf_router
 # Importar routers
-from routes_mission_reports_pdf import router as mission_reports_pdf_router
-from routes_mission_reports import router as mission_reports_router
-from routes_mission_reports_summary_pdf import (
+from backend.routes_mission_reports_pdf import router as mission_reports_pdf_router
+from backend.routes_mission_reports import router as mission_reports_router
+from backend.routes_mission_reports_summary_pdf import (
     router as mission_reports_summary_pdf_router,
 )
-from routes_locations import create_locations_router
-from routes_auth_public import create_auth_router, create_public_router
-from routes_admin import create_units_router, create_users_router
-from routes_features import (
+from backend.routes_locations import create_locations_router
+from backend.routes_auth_public import create_auth_router, create_public_router
+from backend.routes_admin import create_units_router, create_users_router
+from backend.routes_features import (
     create_attendance_router,
     create_service_router,
     create_credential_router,
     create_notifications_router,
     create_reports_router,
 )
-from routes_upload import create_upload_router
-from routes_presences import router as presences_router
-from routes_attendance_results import router as attendance_results_router
+from backend.routes_upload import create_upload_router
+from backend.routes_presences import router as presences_router
+from backend.routes_attendance_results import router as attendance_results_router
 
 # Novos routers — colaboradores
-from routes_colaboradores import create_colaboradores_router
-from routes_presencas_colaboradores import create_presencas_colaboradores_router
+from backend.routes_colaboradores import create_colaboradores_router
+from backend.routes_presencas_colaboradores import create_presencas_colaboradores_router
 
 # Configuração MongoDB
 mongo_url = os.environ["MONGO_URL"]
@@ -49,6 +49,21 @@ db = client[os.environ["DB_NAME"]]
 
 # App principal
 app = FastAPI(title="DARPE Regional Itajaí API", version="1.0.0")
+
+
+app.mount("/static", StaticFiles(directory="backend/static"), name="static")
+
+@app.get("/")
+async def dashboard():
+    return FileResponse("backend/static/index.html")
+
+@app.get("/manifest.json")
+async def manifest():
+    return FileResponse("backend/static/manifest.json")
+
+@app.get("/service-worker.js")
+async def service_worker():
+    return FileResponse("backend/static/service-worker.js")    
 
 # Router com prefixo /api
 api_router = APIRouter(prefix="/api")

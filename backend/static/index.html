@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0F2A52">
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
   <meta name="theme-color" content="#e8e8e8"/>
@@ -649,6 +651,18 @@ document.addEventListener('keydown',e=>{
   if(e.key!=='Enter')return;
   if(cur==='login'){const a=document.querySelector('.login-tab.active');a?.textContent==='Entrar'?doLogin():doCad();}
 });
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/static/service-worker.js')
+    .then(function(registration) {
+      console.log('Service Worker registrado:', registration.scope);
+    })
+    .catch(function(error) {
+      console.log('Erro no Service Worker:', error);
+    });
+}
 </script>
 </body>
 </html>

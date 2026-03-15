@@ -1,21 +1,23 @@
-const CACHE_NAME = "darpe-cache-v1";
-
-const urlsToCache = [
+const CACHE_NAME = "darpe-cache-v2";
+const URLS_TO_CACHE = [
   "/",
-  "/static/manifest.json"
+  "/manifest.json",
+  "/static/index.html",
+  "/static/icon-192.png",
+  "/static/icon-512.png"
 ];
 
-self.addEventListener("install", event => {
+self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(urlsToCache);
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(URLS_TO_CACHE);
     })
   );
 });
 
-self.addEventListener("fetch", event => {
+self.addEventListener("fetch", (event) => {
   event.respondWith(
-    caches.match(event.request).then(response => {
+    caches.match(event.request).then((response) => {
       return response || fetch(event.request);
     })
   );

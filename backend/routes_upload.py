@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from motor.motor_asyncio import AsyncIOMotorDatabase
-from security import get_current_user
+from backend.security import get_current_user
 import base64
 import uuid
 import os
