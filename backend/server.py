@@ -8,7 +8,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
-from backend.inactivity_check import check_and_update_inactive_users
+from inactivity_check import check_and_update_inactive_users
 
 # Caminhos do projeto
 ROOT_DIR = Path(__file__).parent
