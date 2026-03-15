@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from motor.motor_asyncio import AsyncIOMotorDatabase
+
+
 from backend.models import *
 from backend.security import get_password_hash, verify_password, create_access_token, get_current_user
 from backend.qrcode_gen import generate_qr_code

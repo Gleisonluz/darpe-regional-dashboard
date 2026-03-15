@@ -19,6 +19,23 @@ const funcoesDarpe = [
   { value: 'Ancião Coordenador', label: 'Ancião Coordenador' }
 ];
 
+
+const formatWhatsapp = (value) => {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  }
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+};
+
+const normalizeWhatsapp = (value) => {
+  const digits = value.replace(/\D/g, '');
+  return `+55${digits}`;
+};
+
 export const UserFormModal = ({ open, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -53,7 +70,12 @@ export const UserFormModal = ({ open, onClose, onSuccess }) => {
 
     setLoading(true);
     try {
-      await authApi.register(formData);
+      const payload = {
+        ...formData,
+        whatsapp: normalizeWhatsapp(formData.whatsapp)
+      };
+      
+      await authApi.register(payload);
       toast.success('Colaborador cadastrado com sucesso! Status: Pendente de aprovação');
       onSuccess();
       onClose();
@@ -76,12 +98,14 @@ export const UserFormModal = ({ open, onClose, onSuccess }) => {
           <div>
             <label className="text-sm font-medium text-slate-700 mb-2 block">Nome Completo *</label>
             <Input
-              data-testid="user-name-input"
-              value={formData.nome_completo}
-              onChange={(e) => setFormData({ ...formData, nome_completo: e.target.value })}
-              placeholder="Nome completo do colaborador"
-              required
-            />
+  data-testid="user-name-input"
+  value={formData.nome_completo}
+  onChange={(e) =>
+    setFormData({ ...formData, nome_completo: e.target.value })
+  }
+  placeholder="Nome completo do colaborador"
+  required
+/>
           </div>
 
           <div>
@@ -90,8 +114,10 @@ export const UserFormModal = ({ open, onClose, onSuccess }) => {
               data-testid="user-whatsapp-input"
               type="tel"
               value={formData.whatsapp}
-              onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
-              placeholder="+55 47 99999-9999"
+              onChange={(e) =>
+                setFormData({ ...formData, whatsapp: formatWhatsapp(e.target.value) })
+              }
+              placeholder="(__) _____-____"
               required
             />
           </div>
@@ -136,7 +162,15 @@ export const UserFormModal = ({ open, onClose, onSuccess }) => {
             <label className="text-sm font-medium text-slate-700 mb-2 block">Função DARPE *</label>
             <Select 
               value={formData.funcoes_darpe[0]} 
-              onValueChange={(value) => setFormData({ ...formData, funcoes_darpe: [value] })}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  funcoes_darpe:
+                    value === 'Ancião Coordenador'
+                      ? ['Ancião Coordenador']
+                      : [value]
+                })
+              }
             >
               <SelectTrigger data-testid="user-function-select">
                 <SelectValue />
