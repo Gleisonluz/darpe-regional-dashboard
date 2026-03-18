@@ -418,7 +418,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-const API = 'https://darpe-regional-dashboard-production.up.railway.app/api';
+const API = `${window.location.origin}/api`;
 let cur='splash', prev=null, user=null, token=null, qrDone=false;
 
 window.addEventListener('load', async () => {
