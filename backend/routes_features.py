@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from motor.motor_asyncio import AsyncIOMotorDatabase
-from backend.models import *
-from backend.security import get_current_user
-from backend.qrcode_gen import generate_qr_code
+from models import *
+from security import get_current_user
+from qrcode_gen import generate_qr_code
 import uuid
 from datetime import datetime, timezone, timedelta
 
