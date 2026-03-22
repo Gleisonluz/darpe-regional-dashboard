@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
+from .phone_utils import normalize_phone
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from pydantic import BaseModel
@@ -13,7 +14,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "darpe-secret-key")
 ALGORITHM = "HS256"
 security = HTTPBearer()
 
-# ── Cargos restritos (precisam de aprovação) ───────────────────────────────────
+# ── Cargos restritos (precisam de aprovação) ──────────────────────────────────
 CARGOS_RESTRITOS = [
     "Secretario Regional",
     "Secretario Local",
@@ -21,7 +22,7 @@ CARGOS_RESTRITOS = [
     "Anciao Coordenador",
 ]
 
-# ── Cargos/ministérios opcionais (qualquer colaborador pode ter) ───────────────
+# ── Cargos/ministérios opcionais ──────────────────────────────────────────────
 CARGOS_MINISTERIO = [
     "Musico",
     "Diacono",
@@ -47,25 +48,24 @@ CARGOS_APROVADORES = [
 ]
 
 
-# ── Modelos ────────────────────────────────────────────────────────────────────
+# ── Modelos ───────────────────────────────────────────────────────────────────
 
 class ColaboradorCadastro(BaseModel):
     nome_completo: str
     comum_congregacao: str
     whatsapp: str
     senha: str
-    # Cargo restrito opcional (Secretário, Atendente, Ancião Coordenador)
+    foto_url: str
     cargo_restrito: Optional[str] = None
-    # Cargos/ministérios extras opcionais (pode ser lista vazia)
     cargos_ministerio: Optional[List[str]] = []
-    cargo_outro: Optional[str] = None  # Se "Outro" for selecionado
+    cargo_outro: Optional[str] = None
 
 class ColaboradorLogin(BaseModel):
     whatsapp: str
     senha: str
 
 
-# ── Helpers ────────────────────────────────────────────────────────────────────
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
 def hash_senha(senha: str) -> str:
     return hashlib.sha256(senha.encode()).hexdigest()
@@ -93,10 +93,10 @@ def is_aprovador(colaborador: dict) -> bool:
     return cargo_restrito in CARGOS_APROVADORES
 
 
-# ── Factory ────────────────────────────────────────────────────────────────────
+# ── Factory ───────────────────────────────────────────────────────────────────
 
 def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
-    router = APIRouter(prefix="/colaboradores", tags=["Colaboradores"])
+    router = APIRouter(tags=["Colaboradores"])
 
     async def get_colaborador_atual(
         credentials: HTTPAuthorizationCredentials = Depends(security)
@@ -109,7 +109,7 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
             raise HTTPException(status_code=404, detail="Colaborador não encontrado")
         return colaborador
 
-    # ── Listar cargos disponíveis ──────────────────────────────────────────────
+    # ── Listar cargos ─────────────────────────────────────────────────────────
     @router.get("/cargos", summary="Listar cargos disponíveis")
     async def listar_cargos():
         return {
@@ -117,21 +117,25 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
             "cargos_ministerio": CARGOS_MINISTERIO,
         }
 
-    # ── Cadastro ───────────────────────────────────────────────────────────────
+    # ── Cadastro ──────────────────────────────────────────────────────────────
     @router.post("/cadastro", summary="Cadastrar novo colaborador")
     async def cadastrar(dados: ColaboradorCadastro):
+        if not dados.foto_url or not dados.foto_url.strip():
+            raise HTTPException(status_code=400, detail="Foto é obrigatória")
+
         existente = await db.colaboradores.find_one({"whatsapp": dados.whatsapp})
         if existente:
             raise HTTPException(status_code=400, detail="WhatsApp já cadastrado")
 
-        # Validar cargo restrito (se informado)
         cargo_restrito = None
         if dados.cargo_restrito:
             if dados.cargo_restrito not in CARGOS_RESTRITOS:
-                raise HTTPException(status_code=400, detail=f"Cargo restrito inválido: {dados.cargo_restrito}")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Cargo restrito inválido: {dados.cargo_restrito}"
+                )
             cargo_restrito = dados.cargo_restrito
 
-        # Validar cargos/ministérios extras
         cargos_ministerio = []
         for cargo in (dados.cargos_ministerio or []):
             if cargo == "Outro":
@@ -143,9 +147,7 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
             else:
                 cargos_ministerio.append(cargo)
 
-        # Status: pendente só se solicitou cargo restrito
         status = "pendente" if cargo_restrito else "ativo"
-
         colaborador_id = str(uuid.uuid4())
         qr_token = str(uuid.uuid4())
 
@@ -155,11 +157,12 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
             "comum_congregacao": dados.comum_congregacao,
             "whatsapp": dados.whatsapp,
             "senha": hash_senha(dados.senha),
-            "cargo_base": "Colaborador DARPE",        # sempre
-            "cargo_restrito": cargo_restrito,          # Secretário, Atendente, etc (pendente)
-            "cargos_ministerio": cargos_ministerio,    # Músico, Diácono, etc (opcionais)
+            "cargo_base": "Colaborador DARPE",
+            "cargo_restrito": cargo_restrito,
+            "cargos_ministerio": cargos_ministerio,
             "qr_token": qr_token,
             "criado_em": datetime.utcnow().isoformat(),
+            "foto_url": dados.foto_url,
             "ativo": True,
             "status": status,
             "is_admin": False,
@@ -188,23 +191,47 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
                 "cargo_restrito": cargo_restrito,
                 "cargos_ministerio": cargos_ministerio,
                 "status": status,
+                "criado_em": novo.get("criado_em"),
+                "foto_url": novo.get("foto_url"),
+                "qr_token": qr_token,
             }
         }
 
-    # ── Login ──────────────────────────────────────────────────────────────────
+    # ── Login ─────────────────────────────────────────────────────────────────
     @router.post("/login", summary="Login do colaborador")
     async def login(dados: ColaboradorLogin):
+        whatsapp_original = dados.whatsapp
+        whatsapp_limpo = normalize_phone(dados.whatsapp)
+
+        variacoes = list({
+            whatsapp_original,
+            whatsapp_limpo,
+            f"+55{whatsapp_limpo}",
+            f"55{whatsapp_limpo}",
+        })
+
+        print("Original:", whatsapp_original)
+        print("Limpo:", whatsapp_limpo)
+        print("Variações:", variacoes)
+        print("Senha hash:", hash_senha(dados.senha))
+
         colaborador = await db.colaboradores.find_one({
-            "whatsapp": dados.whatsapp,
+            "whatsapp": {"$in": variacoes},
             "senha": hash_senha(dados.senha)
         })
+
         if not colaborador:
             raise HTTPException(status_code=401, detail="WhatsApp ou senha incorretos")
+
         if not colaborador.get("ativo", True):
             raise HTTPException(status_code=403, detail="Conta desativada")
 
         token = criar_token(colaborador["id"])
         status = colaborador.get("status", "ativo")
+
+        print("DEBUG LOGIN >>>", colaborador)
+        print("DEBUG CARGO_BASE >>>", colaborador.get("cargo_base"))
+        print("DEBUG CARGO_RESTRITO >>>", colaborador.get("cargo_restrito"))
 
         return {
             "token": token,
@@ -220,10 +247,13 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
                 "cargos_ministerio": colaborador.get("cargos_ministerio", []),
                 "status": status,
                 "is_admin": colaborador.get("is_admin", False),
+                "criado_em": colaborador.get("criado_em"),
+                "foto_url": colaborador.get("foto_url"),
+                "qr_token": colaborador.get("qr_token"),
             }
         }
 
-    # ── Perfil ─────────────────────────────────────────────────────────────────
+    # ── Perfil ────────────────────────────────────────────────────────────────
     @router.get("/perfil", summary="Perfil do colaborador logado")
     async def perfil(colaborador=Depends(get_colaborador_atual)):
         return {
@@ -240,7 +270,7 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
             "is_admin": colaborador.get("is_admin", False),
         }
 
-    # ── Listar todos (só aprovadores) ──────────────────────────────────────────
+    # ── Listar todos (só aprovadores) ─────────────────────────────────────────
     @router.get("/", summary="Listar colaboradores")
     async def listar(colaborador=Depends(get_colaborador_atual)):
         if not is_aprovador(colaborador):
@@ -260,7 +290,7 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
         ).to_list(1000)
         return pendentes
 
-    # ── Aprovar colaborador ────────────────────────────────────────────────────
+    # ── Aprovar colaborador ───────────────────────────────────────────────────
     @router.post("/aprovar/{colaborador_id}", summary="Aprovar cadastro pendente")
     async def aprovar(colaborador_id: str, colaborador=Depends(get_colaborador_atual)):
         if not is_aprovador(colaborador):
@@ -279,7 +309,7 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
 
         return {"mensagem": "Colaborador aprovado com sucesso!"}
 
-    # ── Rejeitar colaborador ───────────────────────────────────────────────────
+    # ── Rejeitar colaborador ──────────────────────────────────────────────────
     @router.post("/rejeitar/{colaborador_id}", summary="Rejeitar cadastro pendente")
     async def rejeitar(colaborador_id: str, colaborador=Depends(get_colaborador_atual)):
         if not is_aprovador(colaborador):

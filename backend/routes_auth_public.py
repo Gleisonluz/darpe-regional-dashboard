@@ -2,11 +2,11 @@ from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 
-from models import *
-from security import get_password_hash, verify_password, create_access_token, get_current_user
-from qrcode_gen import generate_qr_code
-from inactivity_check import check_and_update_inactive_users
-from phone_utils import normalize_phone
+from .models import *
+from .security import get_password_hash, verify_password, create_access_token, get_current_user
+from .qrcode_gen import generate_qr_code
+from .inactivity_check import check_and_update_inactive_users
+from .phone_utils import normalize_phone
 import uuid
 from datetime import datetime, timezone
 import base64
@@ -64,8 +64,13 @@ def create_auth_router(db: AsyncIOMotorDatabase) -> APIRouter:
                 "funcoes_darpe": user["funcoes_darpe"],
             }
         )
-
+        print("DEBUG USER >>>", user)
+        print("DEBUG CARGO_BASE >>>", user.get("cargo_base"))
+        print("DEBUG CARGO_RESTRITO >>>", user.get("cargo_restrito"))
         user.pop("senha")
+
+        print("DEGUG USER  FINAL >>>" , user)
+
         return Token(access_token=access_token, user=User(**user))
 
     @router.get("/me", response_model=User)

@@ -515,10 +515,30 @@ function fill(){
   document.getElementById('pi-cargo').textContent=c;
   document.getElementById('pi-comum').textContent=cm;
   if(user.criado_em) document.getElementById('pi-data').textContent=new Date(user.criado_em).toLocaleDateString('pt-BR');
+  genQR();
 }
 function genQR(){
-  if(!user?.qr_token||qrDone)return;
-  try{new QRCode(document.getElementById('cred-qr'),{text:user.qr_token,width:74,height:74,colorDark:'#111111',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});qrDone=true;}catch(e){}
+  console.log("genQR chamou");
+  console.log("USER:", user);
+  console.log("QR TOKEN:", user?.qr_token);
+  console.log("ELEMENTO QR:", document.getElementById('cred-qr'));
+
+  if(!user?.qr_token || qrDone) return;
+
+  try {
+    new QRCode(document.getElementById('cred-qr'), {
+      text: user.qr_token,
+      width: 74,
+      height: 74,
+      colorDark: '#111111',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+    qrDone = true;
+    console.log("QR gerado");
+  } catch (e) {
+    console.error("Erro QR:", e);
+  }
 }
 async function loadPres(){
   const el=document.getElementById('pres-lista');

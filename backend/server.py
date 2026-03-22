@@ -9,27 +9,27 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from inactivity_check import check_and_update_inactive_users
-from routes_mission_reports_pdf import router as mission_reports_pdf_router
-from routes_mission_reports import router as mission_reports_router
-from routes_mission_reports_summary_pdf import (
+from backend.inactivity_check import check_and_update_inactive_users
+from backend.routes_mission_reports_pdf import router as mission_reports_pdf_router
+from backend.routes_mission_reports import router as mission_reports_router
+from backend.routes_mission_reports_summary_pdf import (
     router as mission_reports_summary_pdf_router,
 )
-from routes_locations import create_locations_router
-from routes_auth_public import create_auth_router, create_public_router
-from routes_admin import create_units_router, create_users_router
-from routes_features import (
+from backend.routes_locations import create_locations_router
+from backend.routes_auth_public import create_auth_router, create_public_router
+from backend.routes_admin import create_units_router, create_users_router
+from backend.routes_features import (
     create_attendance_router,
     create_service_router,
     create_credential_router,
     create_notifications_router,
     create_reports_router,
 )
-from routes_upload import create_upload_router
-from routes_presences import router as presences_router
-from routes_attendance_results import router as attendance_results_router
-from routes_colaboradores import create_colaboradores_router
-from routes_presencas_colaboradores import create_presencas_colaboradores_router
+from backend.routes_upload import create_upload_router
+from backend.routes_presences import router as presences_router
+from backend.routes_attendance_results import router as attendance_results_router
+from backend.routes_colaboradores import create_colaboradores_router
+from backend.routes_presencas_colaboradores import create_presencas_colaboradores_router
 
 # Caminhos do projeto
 ROOT_DIR = Path(__file__).parent
@@ -122,13 +122,21 @@ api_router.include_router(create_locations_router(db))
 api_router.include_router(presences_router)
 api_router.include_router(attendance_results_router)
 api_router.include_router(mission_reports_router)
-api_router.include_router(mission_reports_summary_pdf_router)
-api_router.include_router(create_colaboradores_router(db))
+api_router.include_router(
+    create_colaboradores_router(db),
+    prefix="/colaboradores",
+    tags=["Colaboradores"]
+)
 api_router.include_router(create_presencas_colaboradores_router(db))
 
 # Incluir router principal no app
 app.include_router(api_router)
-
+# Rotas colaboradores sem prefixo /api (compatibilidade frontend)
+app.include_router(
+    create_colaboradores_router(db),
+    prefix="/colaboradores",
+    tags=["Colaboradores"]
+)
 
 @app.on_event("startup")
 async def startup_event():
