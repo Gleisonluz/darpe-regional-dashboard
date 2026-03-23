@@ -29,8 +29,10 @@ def create_presencas_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter
         if not colaborador.get("ativo", True):
             raise HTTPException(status_code=403, detail="Colaborador inativo")
 
+        colab_id = colaborador.get("id") or str(colaborador.get("_id", ""))
+
         ja_registrado = await db.presencas_colaboradores.find_one({
-            "colaborador_id": colaborador["id"],
+            "colaborador_id": colab_id,
             "reuniao_id": dados.reuniao_id
         })
         if ja_registrado:
@@ -38,7 +40,7 @@ def create_presencas_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter
 
         presenca = {
             "id": str(uuid.uuid4()),
-            "colaborador_id": colaborador["id"],
+            "colaborador_id": colab_id,
             "nome_completo": colaborador["nome_completo"],
             "comum_congregacao": colaborador["comum_congregacao"],
             "whatsapp": colaborador["whatsapp"],
@@ -63,12 +65,10 @@ def create_presencas_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter
     # ── Listar presenças de uma reunião ────────────────────────────────────────
     @router.get("/reuniao/{reuniao_id}", summary="Listar presenças de uma reunião")
     async def listar_por_reuniao(reuniao_id: str):
-        # FIX 1: to_list(None) = sem limite de registros
         presencas = await db.presencas_colaboradores.find(
             {"reuniao_id": reuniao_id}, {"_id": 0}
         ).to_list(None)
 
-        # FIX 2: 404 se nenhuma presença encontrada para a reunião
         if not presencas:
             raise HTTPException(status_code=404, detail="Nenhuma presença encontrada para esta reunião")
 
@@ -81,12 +81,14 @@ def create_presencas_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter
     # ── Listar presenças de um colaborador ────────────────────────────────────
     @router.get("/colaborador/{colaborador_id}", summary="Histórico de presenças do colaborador")
     async def listar_por_colaborador(colaborador_id: str):
-        # FIX 3: Validar se o colaborador existe no banco
-        colaborador = await db.colaboradores.find_one({"id": colaborador_id}, {"_id": 0})
-        if not colaborador:
-            raise HTTPException(status_code=404, detail="Colaborador não encontrado")
+        # Busca pelo campo "id" (string) OU pelo "_id" do MongoDB
+        colaborador = await db.colaboradores.find_one(
+            {"$or": [{"id": colaborador_id}, {"_id": colaborador_id}]},
+            {"_id": 0}
+        )
 
-        # FIX 1: to_list(None) = sem limite de registros
+        # Se não achar, não dá 404 — retorna lista vazia
+        # (colaborador existe mas ainda não tem presenças registradas)
         presencas = await db.presencas_colaboradores.find(
             {"colaborador_id": colaborador_id}, {"_id": 0}
         ).to_list(None)

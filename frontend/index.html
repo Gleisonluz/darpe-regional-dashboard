@@ -292,7 +292,7 @@
         </div>
         <div class="mcard" onclick="goTo('ensinamentos')">
           <div class="mcard-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></div>
-          <div><div class="mcard-lbl">Ensinamentos</div><div class="mcard-sub">Estudo DARPE</div></div>
+          <div><div class="mcard-lbl">Ensinamentos</div><div class="mcard-sub">DARPE</div></div>
         </div>
       </div>
       <div class="sec-title">Meus Dados</div>
@@ -414,25 +414,54 @@
 <!-- ENSINAMENTOS DARPE -->
 <div id="screen-ensinamentos" class="screen">
   <div class="page-hdr">
-    <button class="back-btn" onclick="goBack()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
-    <div><div class="page-ttl">Ensinamentos DARPE</div><div class="page-sub">Estudo dos setores</div></div>
+    <button class="back-btn" onclick="goBack()">←</button>
+    <div class="page-ttl">Ensinamentos</div>
+    <div class="page-sub">DARPE</div>
   </div>
-  <div class="ensin-body">
-    <div class="ensin-tabs" id="ensin-tabs"></div>
-    <div class="ensin-counter" id="ensin-counter">1 / 60</div>
-    <div class="ensin-progress"><div class="ensin-bar" id="ensin-bar"></div></div>
+   <div class="ensin-body">
+    <div class="ensin-tabs">
+      <button class="ensin-tab active" onclick="filtrarCategoria('Todas', this)">Todas</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Institucional', this)">Institucional</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Conduta', this)">Conduta</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Atendimento', this)">Atendimento</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Credenciamento', this)">Credenciamento</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Segurança e Restrições', this)">Segurança</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Batismo', this)">Batismo</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Setor 1', this)">Setor 1</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Setor 2', this)">Setor 2</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Setor 3', this)">Setor 3</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Setor 4', this)">Setor 4</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Irmãs e Trajes', this)">Irmãs</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Música', this)">Música</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Base Legal', this)">Base Legal</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Situações Especiais', this)">Especiais</button>
+    </div>
+
+    <div class="ensin-progress">
+      <div class="ensin-bar" id="ensin-bar"></div>
+    </div>
+
+    <div class="ensin-counter" id="ensin-counter">1 de 1</div>
+
     <div class="ensin-card">
-      <div class="ensin-tag" id="ensin-tag"></div>
-      <div class="ensin-question" id="ensin-question"></div>
-      <div class="ensin-reveal" id="ensin-reveal" onclick="ensinToggle()">Ver resposta</div>
-      <div class="ensin-answer" id="ensin-answer"></div>
+      <div class="ensin-tag" id="ensin-tag">Categoria</div>
+
+      <div class="ensin-question" id="ensin-question">
+        Pergunta aqui
+      </div>
+
+      <div class="ensin-answer show" id="ensin-answer">
+        Resposta aqui
+      </div>
+
+      <div class="ensin-nav">
+        <button class="ensin-btn" id="btn-anterior" onclick="anteriorEnsinamento()">Anterior</button>
+        <button class="ensin-btn" id="btn-proximo" onclick="proximoEnsinamento()">Próximo</button>
+      </div>
     </div>
-    <div class="ensin-nav">
-      <button class="ensin-btn" id="ensin-prev" onclick="ensinNav(-1)">← Anterior</button>
-      <button class="ensin-btn" id="ensin-next" onclick="ensinNav(1)">Próximo →</button>
     </div>
   </div>
-</div>
+
   <!-- NAV -->
   <nav class="bnav" id="bnav">
     <div class="nitems">
@@ -469,13 +498,37 @@ window.addEventListener('load', async () => {
 });
 
 function show(n){
-  const old=document.querySelector('.screen.active');
-  if(old){old.classList.remove('active');old.classList.add('slide-left');setTimeout(()=>old.classList.remove('slide-left'),300);}
-  document.getElementById('screen-'+n).classList.add('active');
-  prev=cur;cur=n;updateNav(n);
-  if(n==='credencial'&&!qrDone&&user) setTimeout(genQR,80);
-  if(n==='presencas') loadPres();
-  if(n==='ensinamentos') ensinInit();
+  const target = document.getElementById('screen-' + n);
+  if (!target) { console.error('Tela não encontrada:', 'screen-' + n); return; }
+
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active', 'slide-left');
+  });
+
+  target.classList.add('active');
+  prev = cur;
+  cur = n;
+  updateNav(n);
+
+  if (n === 'login') switchTab('entrar');
+
+  if (user && (n === 'home' || n === 'credencial' || n === 'perfil')) fill();
+
+  if (n === 'credencial' && user) {
+    const qr = document.getElementById('cred-qr');
+    if (qr) qr.innerHTML = '';
+    qrDone = false;
+    setTimeout(genQR, 80);
+  }
+
+  if (n === 'presencas') loadPres();
+
+  if (n === 'ensinamentos') {
+    setTimeout(() => {
+      const tab = document.querySelector('.ensin-tab.active') || document.querySelector('.ensin-tab');
+      if (tab) filtrarCategoria('Todas', tab);
+    }, 50);
+  }
 }
 function goTo(n){show(n);}
 function goBack(){show(prev||'home');}
@@ -584,15 +637,25 @@ async function loadPres(){
   const el=document.getElementById('pres-lista');
   el.innerHTML='<div class="empty"><div class="empty-icon" style="font-size:26px">⏳</div><div class="empty-txt">Carregando...</div></div>';
   try{
-    const r=await fetch(`${API}/presencas-colaboradores/colaborador/${user.id}`,{headers:{'Authorization':`Bearer ${token}`}});
-    if(r.status===404){el.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-txt">Nenhuma presença registrada ainda.</div></div>';return;}
+    // Tenta a rota principal
+    let r = await fetch(`${API}/presencas-colaboradores/colaborador/${user.id}`,{headers:{'Authorization':`Bearer ${token}`}});
+    // Se 404, tenta rota alternativa
+    if(r.status===404){
+      r = await fetch(`${API}/presencas/colaborador/${user.id}`,{headers:{'Authorization':`Bearer ${token}`}});
+    }
+    if(r.status===404){
+      el.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-txt">Nenhuma presença registrada ainda.</div></div>';
+      return;
+    }
+    if(!r.ok) throw new Error('Erro ao buscar presenças');
     const d=await r.json();
-    if(!d.presencas?.length){el.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-txt">Nenhuma presença registrada ainda.</div></div>';return;}
-    el.innerHTML=d.presencas.map(p=>{
+    const lista = d.presencas || d.data || d || [];
+    if(!lista.length){el.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-txt">Nenhuma presença registrada ainda.</div></div>';return;}
+    el.innerHTML=lista.map(p=>{
       const dt=p.data_checkin?new Date(p.data_checkin).toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'}):'—';
       return `<div class="pitem"><div class="picon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#27ae60" stroke-width="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div><div class="pinfo"><div class="preuniao">Reunião DARPE</div><div class="pdata">${dt}</div></div><div class="pcheck">✓</div></div>`;
     }).join('');
-  }catch(e){el.innerHTML='<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-txt">Erro ao carregar.</div></div>';}
+  }catch(e){el.innerHTML='<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-txt">Erro ao carregar presenças.</div></div>';console.error('loadPres erro:',e);}
 }
 async function doEsqueci(){
   const w=document.getElementById('esq-wpp').value.trim();
@@ -626,135 +689,405 @@ document.addEventListener('keydown',e=>{
   if(cur==='login'){const a=document.querySelector('.login-tab.active');a?.textContent==='Entrar'?doLogin():doCad();}
 });
 // ── ENSINAMENTOS DARPE ─────────────────────────────────────────────────────
-const ENSIN_ALL = [
-  {q:"Qual é a finalidade do DARPE?",a:"Organização, controle, orientação de participantes e padronização das reuniões para evangelização.",s:1},
-  {q:"Onde está sediado o DARPE central da CCB?",a:"No Complexo Brás, em São Paulo/SP.",s:1},
-  {q:"Como deve ser a linguagem nas orações durante as reuniões?",a:"Palavras simples para que os ouvintes possam compreender e aprender.",s:1},
-  {q:"O que os irmãos devem evitar ao saudar os ouvintes após a reunião?",a:"Transmitir supostos recados da parte de Deus.",s:1},
-  {q:"De quem é a responsabilidade pela exortação da Palavra no atendimento?",a:"Dos irmãos que atendem a Reunião Para Evangelização.",s:1},
-  {q:"Qual procedimento em caso de rebelião na instituição?",a:"Manter posição de neutralidade em relação ao movimento.",s:2},
-  {q:"É permitido usar redes sociais para convidar a irmandade às reuniões?",a:"Não. Os integrantes do DARPE não devem utilizar redes sociais para esse fim.",s:1},
-  {q:"Em quais setores é permitido cadastrar colaboradores menores de idade?",a:"Setores 3 (Forças de Segurança), 4 (Hospitais e Idosos) e 5 (Educacional), com autorização dos pais.",s:1},
-  {q:"Qual a posição da CCB em relação a cultos ecumênicos?",a:"A CCB não participa da celebração de cultos ecumênicos.",s:1},
-  {q:"O que deve ser feito com a credencial de quem deixa de atuar no grupo?",a:"O responsável pelo grupo deve retê-la para providenciar o descredenciamento.",s:1},
-  {q:"O que NÃO deve constar nas Bíblias e Hinários usados nas reuniões?",a:"Nomes, endereços ou telefones.",s:1},
-  {q:"Qual é a regra sobre levar ou trazer objetos para internos de instituições?",a:"É proibido levar ou trazer qualquer objeto, recado ou valor aos internos.",s:2},
-  {q:"Quem deve ser informado pelo reeducando sobre sua condição de membro da CCB para o funeral?",a:"A sua própria família.",s:2},
-  {q:"É permitida a participação de irmãs em instituições exclusivamente masculinas?",a:"Não, não deve haver participação de irmãs nessas instituições em hipótese alguma.",s:2},
-  {q:"Como os músicos devem agir em relação aos seus instrumentos perante os ouvintes?",a:"Nunca devem oferecer seus instrumentos aos ouvintes para evitar constrangimentos.",s:1},
-  {q:"Qual o tempo máximo recomendado para uma Reunião Para Evangelização?",a:"Uma hora.",s:1},
-  {q:"Como deve ser feita a saudação entre a irmandade e os ouvintes?",a:'Deve-se usar a expressão "A Paz de Deus".',s:1},
-  {q:"Quais expressões devem ser evitadas na pregação em prisões?",a:'"O Senhor vai quebrar as cadeias" ou "abrir as portas".',s:2},
-  {q:"É permitida a realização da Santa Ceia nos atendimentos do DARPE?",a:"Não é permitida, salvo casos excepcionais tratados pelo Grupo Gestor.",s:1},
-  {q:"Como deve ser recebida uma pessoa com tatuagens que é chamada por Deus?",a:"Deve ser recebida normalmente, sem nenhuma discriminação.",s:1},
-  {q:"Há liberdade para testemunhos dos ouvintes nas Reuniões Para Evangelização?",a:"Não, nessas reuniões não há liberdade para os testemunhos.",s:1},
-  {q:"Quem está autorizado a realizar a unção em enfermos nas instituições?",a:"Ancião, Cooperador do Ofício Ministerial, Diácono ou Cooperador de Jovens e Menores.",s:4},
-  {q:"Qual a orientação para as irmãs sobre o modelo de véu nas reuniões?",a:"Devem usar véus simples, sem rendas largas que chamem a atenção.",s:1},
-  {q:"O que os irmãos devem evitar em relação à vida passada dos ouvintes?",a:"Devem evitar interrogá-los a respeito da sua vida passada.",s:1},
-  {q:"É permitida fotos ou filmagens durante os atendimentos?",a:"É expressamente proibida, exceto se feita por funcionários da instituição para registro interno.",s:1},
-  {q:"Qual é a instrução para ajuntamentos de internos sem irmão credenciado?",a:"Devem limitar-se apenas aos cânticos de hinos e orações.",s:2},
-  {q:"Por que a CCB não fornece carta de apresentação para reeducandos transferidos?",a:"Porque cabe ao próprio reeducando se apresentar ao responsável pelos cultos na nova unidade.",s:2},
-  {q:"Qual o procedimento sobre o uso de celular dentro de instituições prisionais?",a:"É proibido entrar com celular; recomenda-se deixá-lo no carro ou em local seguro.",s:2},
-  {q:"Qual termo deve ser usado para se referir aos internos em unidades de menores?",a:"Internos.",s:5},
-  {q:"O que acontece com a liberdade de manifestação de um reeducando batizado que reincide?",a:"Ele perde a condição de se manifestar nas reuniões.",s:2},
-  {q:"Os irmãos têm responsabilidade financeira sobre os reeducandos batizados?",a:"Não, não possuem nenhuma responsabilidade financeira ou pessoal sobre eles.",s:2},
-  {q:"Qual impedimento para o batismo é citado para reeducandos solteiros?",a:'O recebimento de "visita íntima" sem estarem casados.',s:2},
-  {q:"É permitido realizar batismos dentro de Clínicas de Recuperação?",a:"Não, devido ao tratamento médico dos internos.",s:4},
-  {q:"Qual a recomendação de higiene para colaboradores em Albergues?",a:"Evitar abraços e o ósculo santo, mantendo distância física dos hóspedes.",s:2},
-  {q:"Como os colaboradores devem se dirigir aos membros das Forças de Segurança?",a:"Sempre pela patente e em seguida o nome, ou apenas pela patente.",s:3},
-  {q:"Qual o limite máximo de membros para um grupo nas Forças de Segurança?",a:"No máximo 10 membros.",s:3},
-  {q:"Qual o procedimento de entrada de objetos para batismo em presídios militares?",a:"Deve-se enviar um ofício solicitando permissão de entrada para cada item necessário.",s:3},
-  {q:"Quais instrumentos são orientados pelo DARPE para uso em hospitais?",a:"Instrumentos da família das cordas (violino, viola e violoncelo).",s:4},
-  {q:"Quem deve ser consultado antes de realizar o batismo de um idoso em instituição?",a:"O ancião coordenador, a direção da instituição e a família ou responsáveis.",s:4},
-  {q:"Qual é a finalidade do atendimento do Setor Educacional?",a:"Propagar o Evangelho e dar assistência espiritual a estudantes em conflito ou dificuldades.",s:5},
-  {q:"As reuniões em estabelecimentos de ensino devem ser solicitadas por quem?",a:"Pelos próprios alunos da instituição.",s:5},
-  {q:"Por que não se utilizam instrumentos em reuniões dentro de unidades de ensino comum?",a:"Por ser um ambiente estudantil inadequado para cerimonial religioso, exceto se houver capela.",s:5},
-  {q:"Qual o traje sugerido para irmãos que presidem reuniões em ambientes estudantis?",a:"Traje casual, porém respeitoso, para facilitar a aproximação dos jovens.",s:5},
-  {q:"O que deve fazer o colaborador que desenvolve desejo de adoção em locais de acolhimento?",a:"Deve ser orientado a deixar de colaborar na atividade para não confundir o espiritual com o pessoal.",s:5},
-  {q:"Qual é a regra sobre contato físico em locais de acolhimento de crianças?",a:"Deve-se evitar o contato físico e não pegar crianças no colo para evitar interpretações errôneas.",s:5},
-  {q:"Como deve ser a voz do colaborador ao orar em APAEs ou Escolas Especiais?",a:"Voz plana, pausada e agradável.",s:5},
-  {q:"Qual é a função do SIGA no contexto do DARPE?",a:"Disponibilizar materiais, orientações, formulários e realizar o cadastro de colaboradores e unidades.",s:1},
-  {q:"Com quantos dias de antecedência o ofício de batismo deve ser enviado ao presídio?",a:"Pelo menos 15 dias antes da data.",s:2},
-  {q:"Quem emite a credencial de acesso às unidades prisionais?",a:"A Secretaria de Administração Penitenciária (SAP).",s:2},
-  {q:"Em quais condições de saúde o colaborador deve evitar visitar hospitais?",a:"Se apresentar sintomas como febre, tosse ou diarreia.",s:4},
-  {q:"Qual a ordem de preferência em um batismo com tanques portáteis?",a:"Batizar as pessoas sem doenças no início e as portadoras de doenças no final.",s:4},
-  {q:"Qual artigo da Constituição Federal assegura assistência religiosa em entidades de internação?",a:"Artigo 5º, inciso VII.",s:1},
-  {q:"A participação do preso em atividades religiosas é obrigatória segundo a LEP?",a:"Não, nenhum preso ou internado poderá ser obrigado a participar de atividade religiosa.",s:2},
-  {q:"Qual lei dispõe sobre assistência religiosa em hospitais públicos e privados?",a:"Lei nº 9.982 de 14/07/2000.",s:4},
-  {q:"A divulgação de imagens de crianças a quem se atribui ato infracional é permitida?",a:"Não, é vedada pelo Estatuto da Criança e do Adolescente (ECA).",s:5},
-  {q:"O que a LGPD define como dado pessoal sensível?",a:"Informações sobre origem racial, convicção religiosa, opinião política ou dados referentes à saúde.",s:1},
-  {q:"O que deve ser feito se um colaborador for aposentado por invalidez pelo INSS?",a:"Ele não deve exercer atividade voluntária sob o risco de perda do seu benefício.",s:1},
-  {q:"Como deve ser o andamento musical em reuniões para pessoas com deficiência intelectual?",a:"Sonoridade suave e andamento próximo à média.",s:4},
-  {q:"Qual o procedimento para criação de um novo DARPE em uma Regional?",a:"Solicitação da unidade, avaliação do Ministério local e aprovação em Reunião Regional Ministerial (RRM).",s:1},
-  {q:"Por que é importante manter o sigilo sobre assuntos vistos dentro das instituições?",a:"Para preservar a integridade dos atendidos e evitar situações embaraçosas ou riscos de segurança.",s:1},
+const ensinamentos = [
+  {
+    categoria: "Institucional",
+    pergunta: "Qual é a finalidade do Departamento de Assistência Religiosa Para Evangelização (DARPE)?",
+    resposta: "Organização, controle, orientação de participantes e padronização das reuniões para evangelização."
+  },
+  {
+    categoria: "Institucional",
+    pergunta: "Onde está sediado o DARPE central da Congregação Cristã no Brasil?",
+    resposta: "No Complexo Brás, em São Paulo/SP."
+  },
+  {
+    categoria: "Institucional",
+    pergunta: "Quais são os setores de atuação do DARPE?",
+    resposta: "O DARPE atua em quatro setores: (1) Sistemas de Ressocialização e Socioeducativos; (2) Clínicas de Dependentes e Albergues; (3) Forças de Segurança; e (4) Hospitais, Instituições para Idosos e Setor Educacional."
+  },
+  {
+    categoria: "Institucional",
+    pergunta: "Qual é a função do SIGA no contexto administrativo do DARPE?",
+    resposta: "Disponibilizar materiais, orientações, formulários e realizar o cadastro de colaboradores e unidades."
+  },
+  {
+    categoria: "Institucional",
+    pergunta: "Qual o procedimento para criação de um novo DARPE em uma Regional?",
+    resposta: "Solicitação da unidade, avaliação do Ministério local e aprovação em Reunião Regional Ministerial (RRM)."
+  },
+
+  {
+    categoria: "Conduta",
+    pergunta: "Como deve ser a linguagem utilizada pelos irmãos do grupo durante as orações nas reuniões?",
+    resposta: "Devem ser usadas palavras simples para que os ouvintes possam compreender e aprender."
+  },
+  {
+    categoria: "Conduta",
+    pergunta: "O que os irmãos devem evitar fazer ao saudar os ouvintes após o término da reunião para evangelização?",
+    resposta: "Transmitir supostos recados da parte de Deus."
+  },
+  {
+    categoria: "Conduta",
+    pergunta: "Qual procedimento deve ser adotado pelos irmãos em caso de rebelião na instituição?",
+    resposta: "Manter posição de neutralidade em relação ao movimento."
+  },
+  {
+    categoria: "Conduta",
+    pergunta: "É permitido utilizar as redes sociais para convidar a irmandade para as Reuniões Para Evangelização?",
+    resposta: "Não. Os integrantes do DARPE não devem utilizar redes sociais para esse fim."
+  },
+  {
+    categoria: "Conduta",
+    pergunta: "Qual é a posição da Congregação Cristã no Brasil em relação a cultos ecumênicos?",
+    resposta: "A Congregação Cristã no Brasil não participa da celebração de cultos ecumênicos."
+  },
+  {
+    categoria: "Conduta",
+    pergunta: "O que não deve constar nas Bíblias e Hinários utilizados nas reuniões?",
+    resposta: "Nomes, endereços ou telefones."
+  },
+  {
+    categoria: "Conduta",
+    pergunta: "Qual deve ser a saudação entre a irmandade e os ouvintes segundo o ensinamento?",
+    resposta: "Deve-se usar a expressão “A Paz de Deus”."
+  },
+  {
+    categoria: "Conduta",
+    pergunta: "Quais expressões devem ser evitadas na pregação para não gerarem dupla interpretação em prisões?",
+    resposta: "Expressões como “o Senhor vai quebrar as cadeias” ou “abrir as portas”."
+  },
+  {
+    categoria: "Conduta",
+    pergunta: "Como deve ser recebida uma pessoa com tatuagens que é chamada por Deus?",
+    resposta: "Deve ser recebida normalmente, sem nenhuma discriminação."
+  },
+  {
+    categoria: "Conduta",
+    pergunta: "Há liberdade para testemunhos dos ouvintes nas Reuniões Para Evangelização?",
+    resposta: "Não. Nessas reuniões não há liberdade para testemunhos."
+  },
+  {
+    categoria: "Conduta",
+    pergunta: "O que os irmãos devem evitar fazer em relação à vida passada dos ouvintes?",
+    resposta: "Devem evitar interrogá-los a respeito da sua vida passada."
+  },
+  {
+    categoria: "Conduta",
+    pergunta: "É permitida a realização de fotos ou filmagens durante os atendimentos?",
+    resposta: "É expressamente proibida, exceto se feita por funcionários da instituição para registro interno."
+  },
+  {
+    categoria: "Conduta",
+    pergunta: "Por que é importante manter o sigilo sobre assuntos vistos dentro das instituições?",
+    resposta: "Para preservar a integridade dos atendidos e evitar situações embaraçosas ou riscos de segurança."
+  },
+
+  {
+    categoria: "Atendimento",
+    pergunta: "De quem é a responsabilidade pela exortação da Palavra durante o atendimento?",
+    resposta: "Dos irmãos que atendem a Reunião Para Evangelização."
+  },
+  {
+    categoria: "Atendimento",
+    pergunta: "Qual é o tempo máximo de duração recomendado para uma Reunião Para Evangelização?",
+    resposta: "Uma hora."
+  },
+  {
+    categoria: "Atendimento",
+    pergunta: "É permitida a realização do Serviço Divino de Santa Ceia nos atendimentos do DARPE?",
+    resposta: "Não é permitida, salvo casos excepcionais tratados pelo Grupo Gestor."
+  },
+  {
+    categoria: "Atendimento",
+    pergunta: "Qual é a instrução para ajuntamentos de internos sem a presença de um irmão credenciado?",
+    resposta: "Devem limitar-se apenas aos cânticos de hinos e orações."
+  },
+  {
+    categoria: "Atendimento",
+    pergunta: "Os irmãos que atendem as reuniões têm responsabilidade financeira sobre os reeducandos batizados?",
+    resposta: "Não. Não possuem nenhuma responsabilidade financeira ou pessoal sobre eles."
+  },
+  {
+    categoria: "Atendimento",
+    pergunta: "Quem está autorizado a realizar a unção em enfermos nas instituições?",
+    resposta: "Ancião, Cooperador do Ofício Ministerial, Diácono ou Cooperador de Jovens e Menores."
+  },
+
+  {
+    categoria: "Credenciamento",
+    pergunta: "Em quais setores do DARPE é permitido o cadastramento de colaboradores menores de idade?",
+    resposta: "Setores 3 (Forças de Segurança) e 4 (Hospitais, Instituições para Idosos e Setor Educacional), com autorização dos pais."
+  },
+  {
+    categoria: "Credenciamento",
+    pergunta: "O que deve ser feito com a credencial de um membro que deixa de atuar no grupo?",
+    resposta: "O responsável pelo grupo deve retê-la para providenciar o descredenciamento."
+  },
+  {
+    categoria: "Credenciamento",
+    pergunta: "Quem é o responsável pela emissão da credencial de acesso às unidades prisionais?",
+    resposta: "A Secretaria de Administração Penitenciária (SAP)."
+  },
+
+  {
+    categoria: "Segurança e Restrições",
+    pergunta: "Qual é a regra sobre levar ou trazer objetos, como dinheiro ou roupas, para internos de instituições?",
+    resposta: "É proibido levar ou trazer qualquer objeto, recado ou valor aos internos."
+  },
+  {
+    categoria: "Segurança e Restrições",
+    pergunta: "Qual o procedimento sobre o uso de celular por colaboradores dentro de instituições prisionais?",
+    resposta: "É proibido entrar com celular; recomenda-se deixá-lo no carro ou em local seguro."
+  },
+  {
+    categoria: "Segurança e Restrições",
+    pergunta: "A divulgação de imagens de crianças a quem se atribui ato infracional é permitida?",
+    resposta: "Não. É vedada pelo Estatuto da Criança e do Adolescente (ECA)."
+  },
+  {
+    categoria: "Segurança e Restrições",
+    pergunta: "O que define a LGPD, Lei Geral de Proteção de Dados, como dado pessoal sensível?",
+    resposta: "Informações sobre origem racial, convicção religiosa, opinião política ou dados referentes à saúde."
+  },
+
+  {
+    categoria: "Batismo",
+    pergunta: "Qual impedimento para o batismo é citado especificamente para reeducandos solteiros?",
+    resposta: "O recebimento de visita íntima sem estarem casados."
+  },
+  {
+    categoria: "Batismo",
+    pergunta: "É permitido realizar batismos dentro de Clínicas de Recuperação?",
+    resposta: "Não. Não devem ser realizados batismos nesses locais devido ao tratamento médico dos internos."
+  },
+  {
+    categoria: "Batismo",
+    pergunta: "Qual é o procedimento de entrada de objetos para batismo em presídios militares?",
+    resposta: "Deve-se enviar um ofício solicitando permissão de entrada para cada item necessário."
+  },
+  {
+    categoria: "Batismo",
+    pergunta: "Com quantos dias de antecedência o ofício de batismo deve ser enviado à unidade prisional?",
+    resposta: "Pelo menos 15 dias antes da data da realização."
+  },
+  {
+    categoria: "Batismo",
+    pergunta: "Qual é a ordem de preferência de pessoas em um batismo realizado com tanques portáteis?",
+    resposta: "Batizar as pessoas sem doenças no início e as portadoras de doenças no final."
+  },
+  {
+    categoria: "Batismo",
+    pergunta: "O que acontece com a liberdade de manifestação de um reeducando batizado que reincide no crime?",
+    resposta: "Ele perde a condição de se manifestar, testemunhar ou pedir hinos nas reuniões."
+  },
+
+  {
+    categoria: "Setor 1",
+    pergunta: "Por que a CCB não fornece carta de apresentação para reeducandos transferidos ou em liberdade?",
+    resposta: "Porque cabe ao próprio reeducando se apresentar ao responsável pelos cultos na nova unidade."
+  },
+  {
+    categoria: "Setor 1",
+    pergunta: "Quem deve ser informado pelo reeducando sobre sua condição de membro da CCB para fins de funeral?",
+    resposta: "A sua própria família."
+  },
+
+  {
+    categoria: "Setor 2",
+    pergunta: "Qual é a recomendação de higiene para colaboradores em Albergues devido ao risco de doenças?",
+    resposta: "Evitar abraços e o ósculo santo, mantendo distância física dos hóspedes."
+  },
+
+  {
+    categoria: "Setor 3",
+    pergunta: "Como os colaboradores devem se dirigir aos membros das Forças de Segurança?",
+    resposta: "Sempre pela patente e em seguida o nome, ou apenas pela patente."
+  },
+  {
+    categoria: "Setor 3",
+    pergunta: "Qual é o limite máximo de membros para um grupo de colaboradores nas Forças de Segurança?",
+    resposta: "No máximo 10 membros."
+  },
+
+  {
+    categoria: "Setor 4",
+    pergunta: "Quais instrumentos são preferencialmente orientados pelo DARPE para uso em hospitais?",
+    resposta: "Instrumentos da família das cordas, como violino, viola e violoncelo."
+  },
+  {
+    categoria: "Setor 4",
+    pergunta: "Quem deve ser consultado antes de se realizar o batismo de um idoso em instituição de longa permanência?",
+    resposta: "O ancião coordenador, a direção da instituição e a família ou responsáveis."
+  },
+  {
+    categoria: "Setor 4",
+    pergunta: "Em quais condições de saúde o colaborador deve evitar realizar visitas a hospitais?",
+    resposta: "Se apresentar sintomas como febre, tosse ou diarreia."
+  },
+  {
+    categoria: "Setor 4",
+    pergunta: "Qual é a finalidade do Setor Educacional dentro da distribuição setorial atual do DARPE?",
+    resposta: "Propagar o Evangelho e dar assistência espiritual a estudantes em conflito ou dificuldades."
+  },
+  {
+    categoria: "Setor 4",
+    pergunta: "As reuniões em estabelecimentos de ensino devem ser solicitadas por quem?",
+    resposta: "Pelos próprios alunos da instituição."
+  },
+  {
+    categoria: "Setor 4",
+    pergunta: "Por que não se utilizam instrumentos musicais em reuniões dentro de unidades de ensino comum?",
+    resposta: "Por ser um ambiente estudantil inadequado para cerimonial religioso, exceto se houver capela."
+  },
+  {
+    categoria: "Setor 4",
+    pergunta: "Qual o traje sugerido para os irmãos que presidem reuniões em ambientes estudantis?",
+    resposta: "Traje casual, porém respeitoso, para facilitar a aproximação dos jovens."
+  },
+  {
+    categoria: "Setor 4",
+    pergunta: "O que deve fazer o colaborador que desenvolve desejo de adoção em locais de acolhimento de menores?",
+    resposta: "Deve ser orientado a deixar de colaborar na atividade para não confundir o espiritual com o pessoal."
+  },
+  {
+    categoria: "Setor 4",
+    pergunta: "Qual é a regra sobre contato físico, como beijos e abraços, em locais de acolhimento de crianças?",
+    resposta: "Deve-se evitar o contato físico e não pegar crianças no colo para evitar interpretações errôneas."
+  },
+  {
+    categoria: "Setor 4",
+    pergunta: "Como deve ser a voz do colaborador ao realizar a oração em APAEs ou Escolas Especiais?",
+    resposta: "Voz plana, pausada e agradável."
+  },
+  {
+    categoria: "Setor 4",
+    pergunta: "Como deve ser o andamento musical em reuniões para pessoas com deficiência intelectual?",
+    resposta: "Sonoridade suave e andamento próximo à média."
+  },
+
+  {
+    categoria: "Irmãs e Trajes",
+    pergunta: "É permitida a participação de irmãs em reuniões realizadas em instituições exclusivamente masculinas?",
+    resposta: "Não. Não deve haver participação de irmãs nessas instituições em hipótese alguma."
+  },
+  {
+    categoria: "Irmãs e Trajes",
+    pergunta: "Qual é a orientação para as irmãs do grupo sobre o modelo de véu a ser usado nas reuniões?",
+    resposta: "Devem usar véus simples, sem rendas largas que chamem a atenção."
+  },
+
+  {
+    categoria: "Música",
+    pergunta: "Qual deve ser o comportamento dos músicos em relação aos seus instrumentos perante os ouvintes?",
+    resposta: "Os músicos nunca devem oferecer seus instrumentos aos ouvintes para evitar constrangimentos."
+  },
+
+  {
+    categoria: "Base Legal",
+    pergunta: "Qual artigo da Constituição Federal de 1988 assegura a assistência religiosa em entidades de internação?",
+    resposta: "Artigo 5º, inciso VII."
+  },
+  {
+    categoria: "Base Legal",
+    pergunta: "Segundo a Lei de Execução Penal, a participação do preso em atividades religiosas é obrigatória?",
+    resposta: "Não. Nenhum preso ou internado poderá ser obrigado a participar de atividade religiosa."
+  },
+  {
+    categoria: "Base Legal",
+    pergunta: "Qual lei brasileira dispõe sobre a prestação de assistência religiosa em hospitais públicos e privados?",
+    resposta: "Lei nº 9.982, de 14 de julho de 2000."
+  },
+
+  {
+    categoria: "Situações Especiais",
+    pergunta: "O que deve ser feito se um colaborador for aposentado por invalidez pelo INSS?",
+    resposta: "Ele não deve exercer atividade voluntária sob o risco de perda do seu benefício."
+  }
 ];
 
-const ENSIN_SETORES = [
-  {label:"Todos", color:"#1a1a1a"},
-  {label:"Geral", color:"#534AB7"},
-  {label:"Prisional", color:"#0F6E56"},
-  {label:"Forças de Seg.", color:"#993C1D"},
-  {label:"Hospitais/Idosos", color:"#185FA5"},
-  {label:"Educacional", color:"#854F0B"},
-];
+let categoriaAtual = "Todas";
+let listaFiltrada = [...ensinamentos];
+let indiceAtual = 0;
 
-let ensinSector = 0, ensinIdx = 0, ensinFiltered = [...ENSIN_ALL];
+function atualizarTabs(tabClicada) {
+  document.querySelectorAll(".ensin-tab").forEach(tab => {
+    tab.classList.remove("active");
+  });
 
-function ensinInit() {
-  const tabs = document.getElementById('ensin-tabs');
-  tabs.innerHTML = ENSIN_SETORES.map((s,i) =>
-    `<div class="ensin-tab${i===0?' active':''}" onclick="ensinSetSector(${i})">${s.label}</div>`
-  ).join('');
-  ensinIdx = ensinTodayIdx();
-  ensinRender();
+  if (tabClicada) {
+    tabClicada.classList.add("active");
+  }
 }
 
-function ensinTodayIdx() {
-  const d = new Date();
-  const day = Math.floor((d - new Date(d.getFullYear(),0,0)) / 86400000);
-  return day % ensinFiltered.length;
+function filtrarCategoria(categoria, elemento = null) {
+  categoriaAtual = categoria;
+
+  if (categoria === "Todas") {
+    listaFiltrada = [...ensinamentos];
+  } else {
+    listaFiltrada = ensinamentos.filter(item => item.categoria === categoria);
+  }
+
+  indiceAtual = 0;
+  atualizarTabs(elemento);
+  renderEnsinamento();
 }
 
-function ensinSetSector(s) {
-  ensinSector = s;
-  document.querySelectorAll('.ensin-tab').forEach((t,i) => t.classList.toggle('active', i===s));
-  ensinFiltered = s === 0 ? [...ENSIN_ALL] : ENSIN_ALL.filter(c => c.s === s);
-  ensinIdx = ensinTodayIdx();
-  ensinRender();
+function renderEnsinamento() {
+  const perguntaEl = document.getElementById("ensin-question");
+  const respostaEl = document.getElementById("ensin-answer");
+  const contadorEl = document.getElementById("ensin-counter");
+  const tagEl = document.getElementById("ensin-tag");
+  const barraEl = document.getElementById("ensin-bar");
+  const btnAnterior = document.getElementById("btn-anterior");
+  const btnProximo = document.getElementById("btn-proximo");
+
+  if (!perguntaEl || !respostaEl || !contadorEl || !tagEl || !barraEl || !btnAnterior || !btnProximo) {
+    return;
+  }
+
+  if (!listaFiltrada.length) {
+    perguntaEl.innerText = "Nenhum ensinamento encontrado.";
+    respostaEl.innerText = "Não há conteúdo disponível nesta categoria.";
+    contadorEl.innerText = "0 de 0";
+    tagEl.innerText = categoriaAtual;
+    barraEl.style.width = "0%";
+    btnAnterior.disabled = true;
+    btnProximo.disabled = true;
+    return;
+  }
+
+  const item = listaFiltrada[indiceAtual];
+
+  perguntaEl.innerText = item.pergunta;
+  respostaEl.innerText = item.resposta;
+  contadorEl.innerText = `${indiceAtual + 1} de ${listaFiltrada.length}`;
+  tagEl.innerText = item.categoria;
+
+  const progresso = ((indiceAtual + 1) / listaFiltrada.length) * 100;
+  barraEl.style.width = `${progresso}%`;
+
+  btnAnterior.disabled = indiceAtual === 0;
+  btnProximo.disabled = indiceAtual === listaFiltrada.length - 1;
 }
 
-function ensinRender() {
-  const card = ensinFiltered[ensinIdx];
-  const sec = ENSIN_SETORES[card.s];
-  const tag = document.getElementById('ensin-tag');
-  tag.textContent = ENSIN_SETORES[card.s].label;
-  tag.style.background = sec.color + '18';
-  tag.style.color = sec.color;
-  document.getElementById('ensin-question').textContent = card.q;
-  const ans = document.getElementById('ensin-answer');
-  ans.textContent = card.a;
-  ans.classList.remove('show');
-  document.getElementById('ensin-reveal').textContent = 'Ver resposta';
-  document.getElementById('ensin-counter').textContent = `${ensinIdx+1} / ${ensinFiltered.length}`;
-  document.getElementById('ensin-prev').disabled = ensinIdx === 0;
-  document.getElementById('ensin-next').disabled = ensinIdx === ensinFiltered.length - 1;
-  const pct = ((ensinIdx+1)/ensinFiltered.length*100).toFixed(0);
-  const bar = document.getElementById('ensin-bar');
-  bar.style.width = pct + '%';
-  bar.style.background = sec.color;
+function proximoEnsinamento() {
+  if (indiceAtual < listaFiltrada.length - 1) {
+    indiceAtual++;
+    renderEnsinamento();
+  }
 }
 
-function ensinToggle() {
-  const a = document.getElementById('ensin-answer');
-  const btn = document.getElementById('ensin-reveal');
-  a.classList.toggle('show');
-  btn.textContent = a.classList.contains('show') ? 'Ocultar resposta' : 'Ver resposta';
+function anteriorEnsinamento() {
+  if (indiceAtual > 0) {
+    indiceAtual--;
+    renderEnsinamento();
+  }
 }
 
-function ensinNav(dir) {
-  ensinIdx = Math.max(0, Math.min(ensinFiltered.length-1, ensinIdx+dir));
-  ensinRender();
-}
+document.addEventListener("DOMContentLoaded", () => {
+  filtrarCategoria("Todas", document.querySelector(".ensin-tab.active"));
+});
 </script>
 </body>
 </html>
