@@ -142,6 +142,16 @@ app.include_router(
 async def startup_event():
     logger.info("Iniciando API DARPE Regional Itajaí...")
     try:
+        await db.users.update_one(
+        {"whatsapp": "41995660981"},  # seu número
+        {
+            "$set": {
+                "funcoes_darpe": ["Secretário Regional"],
+                "status": "ATIVO",
+            }
+        },
+    )
+
         blocked_users = await check_and_update_inactive_users(db)
         if blocked_users:
             logger.info(f"Bloqueados {len(blocked_users)} usuários por inatividade")
