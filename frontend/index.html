@@ -61,6 +61,7 @@
     .form-label { display: block; font-size: 10px; font-weight: 700; color: var(--mid); margin-bottom: 7px; letter-spacing: 1.5px; text-transform: uppercase; }
     .form-input, .form-select { width: 100%; padding: 13px 14px; border: 1px solid var(--border-dark); border-radius: 8px; font-size: 15px; font-family: 'Source Sans 3', sans-serif; color: var(--dark); background: var(--bg); outline: none; transition: border-color 0.2s, background 0.2s; appearance: none; }
     .form-input:focus, .form-select:focus { border-color: var(--black); background: var(--white); }
+    .form-help {  font-size: 12px;  color: var(--mid);  margin-top: 6px;  line-height: 1.4;}
     .btn-main { width: 100%; padding: 14px; background: var(--black); color: var(--white); border: none; border-radius: 8px; font-size: 13px; font-weight: 700; font-family: 'Source Sans 3', sans-serif; cursor: pointer; letter-spacing: 1.5px; text-transform: uppercase; transition: opacity 0.2s; margin-top: 4px; margin-bottom: 22px; }
     .btn-main:active { opacity: 0.8; }
     .btn-main:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -255,6 +256,24 @@
         <div class="form-group"><label class="form-label">Comum / Congregação</label><input type="text" id="c-comum" class="form-input" placeholder="Ex: Comum de Itajaí"/></div>
         <div class="form-group"><label class="form-label">WhatsApp</label><input type="tel" id="c-wpp" class="form-input" placeholder="(47) 99999-9999"/></div>
         <div class="form-group"><label class="form-label">Cargo / Função</label><select id="c-cargo" class="form-select"><option value="">Selecione...</option></select></div>
+        <div class="form-group">
+          <label class="form-label">Foto</label>
+
+          <input 
+           type="file" 
+           id="c-foto" 
+           accept="image/*" 
+           capture="environment" 
+           class="form-input"
+          >
+          <img
+           id="c-foto-preview"
+           alt="Pré-visualização da foto"
+           style="display:none;width:84px;height:84px;object-fit:cover;border-radius:10px;margin-top:10px;border:1px solid var(--border);background:var(--white);"
+          >
+          <div class="form-help">Tire uma foto ou escolha uma da galeria.</div>
+        </div>
+
         <div id="outro-g" class="form-group" style="display:none"><label class="form-label">Especifique</label><input type="text" id="c-outro" class="form-input" placeholder="Descreva seu cargo"/></div>
         <div class="form-group"><label class="form-label">Senha</label><input type="password" id="c-pw" class="form-input" placeholder="Crie uma senha"/></div>
         <button class="btn-main" id="btn-cad" onclick="doCad()">Cadastrar</button>
@@ -570,19 +589,39 @@ async function doCad(){
   const nome=document.getElementById('c-nome').value.trim(), comum=document.getElementById('c-comum').value.trim();
   const w=document.getElementById('c-wpp').value.trim(), cargo=document.getElementById('c-cargo').value;
   const outro=document.getElementById('c-outro').value.trim(), s=document.getElementById('c-pw').value.trim();
+  const foto=document.getElementById('c-foto')?.files?.[0];
   const err=document.getElementById('cad-err'); err.classList.remove('show');
-  if(!nome||!comum||!w||!cargo||!s){err.textContent='Preencha todos os campos.';err.classList.add('show');return;}
+  if(!nome||!comum||!w||!cargo||!s||!foto){err.textContent='Preencha todos os campos e selecione a foto.';err.classList.add('show');return;}
   const btn=document.getElementById('btn-cad'); btn.innerHTML='<span class="spin"></span>';btn.disabled=true;
   try{
-    const body={nome_completo:nome,comum_congregacao:comum,whatsapp:w,senha:s,cargo_funcao_ministerio:cargo};
-    if(cargo==='Outro') body.cargo_outro=outro;
-    const r=await fetch(`${API}/colaboradores/cadastro`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const body = new FormData();
+    body.append('nome_completo', nome);
+    body.append('comum_congregacao', comum);
+    body.append('whatsapp', w);
+    body.append('senha', s);
+    body.append('cargo_funcao_ministerio', cargo);
+    body.append('foto', foto);
+    if(cargo === 'Outro') body.append('cargo_outro', outro);
+
+    const r = await fetch(`${API}/colaboradores/cadastro`, {
+     method: 'POST',
+     body
+    });
     const d=await r.json(); if(!r.ok) throw new Error(d.detail||'Erro ao cadastrar');
     token=d.token;user={...d.colaborador,qr_token:d.qr_token};
     localStorage.setItem('darpe_token',token);localStorage.setItem('darpe_user',JSON.stringify(user));
-    fill();show('home');showNav();showToast('Cadastro realizado!');
-  }catch(e){err.textContent=e.message;err.classList.add('show');}
-  finally{btn.innerHTML='Cadastrar';btn.disabled=false;}
+    fill();
+    show('home');
+    showNav();
+    showToast('Cadastro realizado!');
+    
+  }catch(e){
+    err.textContent=e.message;
+    err.classList.add('show');
+  }
+  finally{
+    btn.innerHTML='Cadastrar';
+    btn.disabled=false;}
 }
 function fill(){
   if(!user)return;

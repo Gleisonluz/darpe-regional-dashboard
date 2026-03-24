@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from .phone_utils import normalize_phone
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from motor.motor_asyncio import AsyncIOMotorDatabase
@@ -48,17 +48,7 @@ CARGOS_APROVADORES = [
 ]
 
 
-# ── Modelos ───────────────────────────────────────────────────────────────────
-
-class ColaboradorCadastro(BaseModel):
-    nome_completo: str
-    comum_congregacao: str
-    whatsapp: str
-    senha: str
-    foto_url: str
-    cargo_restrito: Optional[str] = None
-    cargos_ministerio: Optional[List[str]] = []
-    cargo_outro: Optional[str] = None
+# ── Modelos (apenas Login — Cadastro agora usa Form + File) ───────────────────
 
 class ColaboradorLogin(BaseModel):
     whatsapp: str
@@ -110,59 +100,84 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
         return colaborador
 
     # ── Listar cargos ─────────────────────────────────────────────────────────
-    @router.get("/cargos", summary="Listar cargos disponíveis")
+    @router.get("/cargos")
     async def listar_cargos():
         return {
-            "cargos_restritos": CARGOS_RESTRITOS,
-            "cargos_ministerio": CARGOS_MINISTERIO,
+            "cargos": [
+                "Colaborador",
+                "Atendente",
+                "Secretário local",
+                "Secretário Regional",
+                "Ancião Coordenador"
+            ]
         }
 
-    # ── Cadastro ──────────────────────────────────────────────────────────────
+    # ── Cadastro (Form + File) ────────────────────────────────────────────────
     @router.post("/cadastro", summary="Cadastrar novo colaborador")
-    async def cadastrar(dados: ColaboradorCadastro):
-        if not dados.foto_url or not dados.foto_url.strip():
+    async def cadastrar(
+        nome_completo: str = Form(...),
+        comum_congregacao: str = Form(...),
+        whatsapp: str = Form(...),
+        senha: str = Form(...),
+        cargo_funcao_ministerio: str = Form(...),
+        cargo_outro: Optional[str] = Form(None),
+        foto: UploadFile = File(...),
+    ):
+        # ── Valida e salva a foto ─────────────────────────────────────────────
+        conteudo = await foto.read()
+        if not conteudo:
             raise HTTPException(status_code=400, detail="Foto é obrigatória")
 
-        existente = await db.colaboradores.find_one({"whatsapp": dados.whatsapp})
+        ext = foto.filename.rsplit(".", 1)[-1].lower() if foto.filename else "jpg"
+        if ext not in ["jpg", "jpeg", "png", "webp"]:
+            raise HTTPException(status_code=400, detail="Formato de foto inválido. Use JPG, PNG ou WEBP.")
+
+        nome_arquivo = f"{uuid.uuid4()}.{ext}"
+        pasta = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "uploads")
+        os.makedirs(pasta, exist_ok=True)
+        caminho = os.path.join(pasta, nome_arquivo)
+        with open(caminho, "wb") as f:
+            f.write(conteudo)
+
+        foto_url = f"/static/uploads/{nome_arquivo}"
+
+        # ── Valida cargo ──────────────────────────────────────────────────────
+        cargo = cargo_funcao_ministerio.strip()
+        cargos_validos = [
+            "Colaborador",
+            "Atendente",
+            "Secretário local",
+            "Secretário Regional",
+            "Ancião Coordenador"
+        ]
+        if cargo not in cargos_validos:
+            raise HTTPException(status_code=400, detail=f"Cargo inválido: {cargo}")
+
+        cargo_restrito = None if cargo == "Colaborador" else cargo
+
+        # ── Verifica duplicidade ──────────────────────────────────────────────
+        existente = await db.colaboradores.find_one({"whatsapp": whatsapp})
         if existente:
             raise HTTPException(status_code=400, detail="WhatsApp já cadastrado")
 
-        cargo_restrito = None
-        if dados.cargo_restrito:
-            if dados.cargo_restrito not in CARGOS_RESTRITOS:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Cargo restrito inválido: {dados.cargo_restrito}"
-                )
-            cargo_restrito = dados.cargo_restrito
-
-        cargos_ministerio = []
-        for cargo in (dados.cargos_ministerio or []):
-            if cargo == "Outro":
-                if not dados.cargo_outro or not dados.cargo_outro.strip():
-                    raise HTTPException(status_code=400, detail="Informe o cargo no campo 'cargo_outro'")
-                cargos_ministerio.append(dados.cargo_outro.strip())
-            elif cargo not in CARGOS_MINISTERIO:
-                raise HTTPException(status_code=400, detail=f"Cargo inválido: {cargo}")
-            else:
-                cargos_ministerio.append(cargo)
-
+        # ── Monta e salva o colaborador ───────────────────────────────────────
         status = "pendente" if cargo_restrito else "ativo"
         colaborador_id = str(uuid.uuid4())
         qr_token = str(uuid.uuid4())
 
         novo = {
             "id": colaborador_id,
-            "nome_completo": dados.nome_completo,
-            "comum_congregacao": dados.comum_congregacao,
-            "whatsapp": dados.whatsapp,
-            "senha": hash_senha(dados.senha),
-            "cargo_base": "Colaborador DARPE",
+            "nome_completo": nome_completo,
+            "comum_congregacao": comum_congregacao,
+            "whatsapp": whatsapp,
+            "senha": hash_senha(senha),
+            "cargo_funcao_ministerio": cargo_outro.strip() if cargo == "Outro" and cargo_outro else cargo,
+            "cargo_base": cargo,
             "cargo_restrito": cargo_restrito,
-            "cargos_ministerio": cargos_ministerio,
+            "cargos_ministerio": [],
             "qr_token": qr_token,
             "criado_em": datetime.utcnow().isoformat(),
-            "foto_url": dados.foto_url,
+            "foto_url": foto_url,
             "ativo": True,
             "status": status,
             "is_admin": False,
@@ -184,15 +199,16 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
             "qr_token": qr_token,
             "colaborador": {
                 "id": colaborador_id,
-                "nome_completo": dados.nome_completo,
-                "comum_congregacao": dados.comum_congregacao,
-                "whatsapp": dados.whatsapp,
-                "cargo_base": "Colaborador DARPE",
-                "cargo_restrito": cargo_restrito,
-                "cargos_ministerio": cargos_ministerio,
+                "nome_completo": novo["nome_completo"],
+                "comum_congregacao": novo["comum_congregacao"],
+                "whatsapp": novo["whatsapp"],
+                "cargo_funcao_ministerio": novo["cargo_funcao_ministerio"],
+                "cargo_base": novo["cargo_base"],
+                "cargo_restrito": novo["cargo_restrito"],
+                "cargos_ministerio": [],
                 "status": status,
-                "criado_em": novo.get("criado_em"),
-                "foto_url": novo.get("foto_url"),
+                "criado_em": novo["criado_em"],
+                "foto_url": novo["foto_url"],
                 "qr_token": qr_token,
             }
         }
@@ -242,7 +258,8 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
                 "nome_completo": colaborador["nome_completo"],
                 "comum_congregacao": colaborador["comum_congregacao"],
                 "whatsapp": colaborador["whatsapp"],
-                "cargo_base": colaborador.get("cargo_base", "Colaborador DARPE"),
+                "cargo_funcao_ministerio": colaborador.get("cargo_funcao_ministerio", ""),
+                "cargo_base": colaborador.get("cargo_base", "Colaborador"),
                 "cargo_restrito": colaborador.get("cargo_restrito"),
                 "cargos_ministerio": colaborador.get("cargos_ministerio", []),
                 "status": status,
@@ -261,11 +278,13 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
             "nome_completo": colaborador["nome_completo"],
             "comum_congregacao": colaborador["comum_congregacao"],
             "whatsapp": colaborador["whatsapp"],
-            "cargo_base": colaborador.get("cargo_base", "Colaborador DARPE"),
+            "cargo_funcao_ministerio": colaborador.get("cargo_funcao_ministerio", ""),
+            "cargo_base": colaborador.get("cargo_base", "Colaborador"),
             "cargo_restrito": colaborador.get("cargo_restrito"),
             "cargos_ministerio": colaborador.get("cargos_ministerio", []),
             "qr_token": colaborador["qr_token"],
             "criado_em": colaborador.get("criado_em"),
+            "foto_url": colaborador.get("foto_url"),
             "status": colaborador.get("status", "ativo"),
             "is_admin": colaborador.get("is_admin", False),
         }
