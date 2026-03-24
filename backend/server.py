@@ -23,7 +23,7 @@ from backend.routes_features import (
     create_reports_router,
 )
 from backend.routes_upload import create_upload_router
-from backend.routes_locations import router as locations_router
+from backend.routes_locations import create_locations_router
 from backend.routes_presences import router as presences_router
 from backend.routes_attendance_results import router as attendance_results_router
 
@@ -101,7 +101,7 @@ api_router.include_router(create_credential_router(db))
 api_router.include_router(create_notifications_router(db))
 api_router.include_router(create_reports_router(db))
 api_router.include_router(create_upload_router(db))
-api_router.include_router(locations_router)
+api_router.include_router(create_locations_router(db))
 api_router.include_router(presences_router)
 api_router.include_router(attendance_results_router)
 
