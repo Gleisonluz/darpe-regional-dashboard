@@ -1,7 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
 from motor.motor_asyncio import AsyncIOMotorDatabase
-from models import *
-from security import get_current_user
+
+from backend.models import *
+from backend.security import get_current_user
+
 import uuid
 from datetime import datetime, timezone
 
@@ -11,13 +13,13 @@ def create_units_router(db: AsyncIOMotorDatabase) -> APIRouter:
 
     def check_permission(current_user: dict, required_functions: List[str]):
         user_functions = current_user.get("funcoes_darpe", [])
-        # Admin functions
         admin_functions = ["Secretário Regional", "Ancião Coordenador"]
-        # Check if user has any of the required functions or is admin
+
         if any(func in user_functions for func in admin_functions):
             return True
         if any(func in user_functions for func in required_functions):
             return True
+
         raise HTTPException(status_code=403, detail="Sem permissão para esta operação")
 
     @router.get("/", response_model=List[Unit])
@@ -67,20 +69,17 @@ def create_units_router(db: AsyncIOMotorDatabase) -> APIRouter:
     async def add_responsavel(unit_id: str, user_id: str, current_user: dict = Depends(get_current_user)):
         check_permission(current_user, ["Secretário Regional", "Ancião Coordenador", "Secretário Local"])
 
-        # Verificar se unidade e usuário existem
         unit = await db.units.find_one({"id": unit_id})
         user = await db.users.find_one({"id": user_id})
 
         if not unit or not user:
             raise HTTPException(status_code=404, detail="Unidade ou usuário não encontrado")
 
-        # Adicionar responsável na unidade
         await db.units.update_one(
             {"id": unit_id},
             {"$addToSet": {"responsaveis": user_id}},
         )
 
-        # Adicionar unidade no usuário
         await db.users.update_one(
             {"id": user_id},
             {"$addToSet": {"unidades": unit_id}},
@@ -92,13 +91,11 @@ def create_units_router(db: AsyncIOMotorDatabase) -> APIRouter:
     async def remove_responsavel(unit_id: str, user_id: str, current_user: dict = Depends(get_current_user)):
         check_permission(current_user, ["Secretário Regional", "Ancião Coordenador", "Secretário Local"])
 
-        # Remover responsável da unidade
         await db.units.update_one(
             {"id": unit_id},
             {"$pull": {"responsaveis": user_id}},
         )
 
-        # Remover unidade do usuário
         await db.users.update_one(
             {"id": user_id},
             {"$pull": {"unidades": unit_id}},
@@ -141,14 +138,11 @@ def create_users_router(db: AsyncIOMotorDatabase) -> APIRouter:
 
     @router.put("/{user_id}", response_model=User)
     async def update_user(user_id: str, user_data: UserUpdate, current_user: dict = Depends(get_current_user)):
-        # Usuário pode atualizar seus próprios dados (exceto funcoes_darpe e status)
-        # Apenas admins podem atualizar funcoes_darpe e status de outros
         if user_id != current_user["sub"]:
             check_admin_permission(current_user)
 
         update_data = {k: v for k, v in user_data.model_dump().items() if v is not None}
 
-        # Se não for admin, remover funcoes_darpe e status do update
         user_functions = current_user.get("funcoes_darpe", [])
         if (
             user_id == current_user["sub"]
@@ -176,7 +170,6 @@ def create_users_router(db: AsyncIOMotorDatabase) -> APIRouter:
         if result.modified_count == 0:
             raise HTTPException(status_code=404, detail="Usuário não encontrado ou já aprovado")
 
-        # Criar notificação
         notification = {
             "id": str(uuid.uuid4()),
             "user_id": user_id,
@@ -202,7 +195,6 @@ def create_users_router(db: AsyncIOMotorDatabase) -> APIRouter:
         if result.modified_count == 0:
             raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
-        # Criar notificação
         notification = {
             "id": str(uuid.uuid4()),
             "user_id": user_id,
