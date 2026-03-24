@@ -1,12 +1,12 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
+from backend.models import *
+from backend.security import get_password_hash, verify_password, create_access_token, get_current_user
+from backend.qrcode_gen import generate_qr_code
+from backend.inactivity_check import check_and_update_inactive_users
+from backend.phone_utils import normalize_phone
 
-from models import *
-from security import get_password_hash, verify_password, create_access_token, get_current_user
-from qrcode_gen import generate_qr_code
-from inactivity_check import check_and_update_inactive_users
-from phone_utils import normalize_phone
 import uuid
 from datetime import datetime, timezone
 import base64
@@ -29,7 +29,7 @@ def create_auth_router(db: AsyncIOMotorDatabase) -> APIRouter:
         # Criar usuário
         user_dict = user_data.model_dump()
         user_dict["id"] = str(uuid.uuid4())
-        user_dict["whatsapp"] = normalized_whatsapp  # Salvar normalizado
+        user_dict["whatsapp"] = normalized_whatsapp
         user_dict["senha"] = get_password_hash(user_data.senha)
         user_dict["status"] = UserStatus.PENDENTE.value
         user_dict["unidades"] = []
@@ -64,12 +64,14 @@ def create_auth_router(db: AsyncIOMotorDatabase) -> APIRouter:
                 "funcoes_darpe": user["funcoes_darpe"],
             }
         )
+
         print("DEBUG USER >>>", user)
         print("DEBUG CARGO_BASE >>>", user.get("cargo_base"))
         print("DEBUG CARGO_RESTRITO >>>", user.get("cargo_restrito"))
+
         user.pop("senha")
 
-        print("DEGUG USER  FINAL >>>" , user)
+        print("DEGUG USER FINAL >>>", user)
 
         return Token(access_token=access_token, user=User(**user))
 
@@ -112,7 +114,6 @@ def create_public_router(db: AsyncIOMotorDatabase) -> APIRouter:
         dia_semana: Optional[str] = None,
         nome: Optional[str] = None,
     ):
-        # Construir filtro
         filtro = {"ativo": True}
         if cidade:
             filtro["cidade"] = cidade
@@ -123,7 +124,6 @@ def create_public_router(db: AsyncIOMotorDatabase) -> APIRouter:
 
         unidades = await db.units.find(filtro, {"_id": 0}).to_list(None)
 
-        # Adicionar nomes dos responsáveis
         for unidade in unidades:
             if unidade.get("responsaveis"):
                 responsaveis_nomes = []
@@ -141,7 +141,6 @@ def create_public_router(db: AsyncIOMotorDatabase) -> APIRouter:
         if not unidade:
             raise HTTPException(status_code=404, detail="Unidade não encontrada")
 
-        # Adicionar nomes dos responsáveis
         if unidade.get("responsaveis"):
             responsaveis_nomes = []
             for resp_id in unidade["responsaveis"]:
