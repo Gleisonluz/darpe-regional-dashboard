@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from motor.motor_asyncio import AsyncIOMotorDatabase
-from models import
+from models import *
 from security import get_current_user
 import uuid
 from datetime import datetime, timezone
