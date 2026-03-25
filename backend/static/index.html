@@ -667,15 +667,16 @@ async function doLogin() {
   const btn = document.getElementById('btn-login');
   btn.innerHTML = '<span class="spin"></span>'; btn.disabled = true;
   try {
-    const r = await fetch(`${API}/colaboradores/login`, {
+    const r = await fetch(`${API}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ whatsapp: w, senha: s })
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.detail || 'Erro ao entrar');
-    token = d.token;
-    user = { ...d.colaborador, qr_token: d.qr_token };
+
+    token = d.access_token;
+    user = d.user;
     localStorage.setItem('darpe_token', token);
     localStorage.setItem('darpe_user', JSON.stringify(user));
     fill(); show('home'); showNav();
