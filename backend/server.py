@@ -49,8 +49,8 @@ logger = logging.getLogger(__name__)
 # ==============================
 # DATABASE
 # ==============================
-mongo_url = os.environ.get("URL_MONGO")
-db_name = os.environ.get("NOME_DO_BANCO_DE_DADOS")
+mongo_url = os.environ.get("MONGO_URL")
+db_name = os.environ.get("DB_NAME")
 
 if not mongo_url:
     raise RuntimeError("Variável URL_MONGO não encontrada.")
