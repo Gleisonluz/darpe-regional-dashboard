@@ -2,21 +2,19 @@ from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional
 import uuid
 import hashlib
 import jwt
 import os
 from datetime import datetime, timedelta
 
-# IMPORT RELATIVO CORRETO (PADRÃO PACOTE)
 from .phone_utils import normalize_phone
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "darpe-secret-key")
 ALGORITHM = "HS256"
 security = HTTPBearer()
 
-# ── Cargos restritos (precisam de aprovação) ──────────────────────────────────
 CARGOS_RESTRITOS = [
     "Secretario Regional",
     "Secretario Local",
@@ -24,7 +22,6 @@ CARGOS_RESTRITOS = [
     "Anciao Coordenador",
 ]
 
-# ── Cargos/ministérios opcionais ──────────────────────────────────────────────
 CARGOS_MINISTERIO = [
     "Musico",
     "Diacono",
@@ -43,32 +40,29 @@ CARGOS_MINISTERIO = [
     "Outro",
 ]
 
-# ── Cargos que podem aprovar pendentes ────────────────────────────────────────
 CARGOS_APROVADORES = [
     "Secretario Regional",
     "Anciao Coordenador",
 ]
 
 
-# ── Modelos ───────────────────────────────────────────────────────────────────
-
 class ColaboradorLogin(BaseModel):
     whatsapp: str
     senha: str
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
 def hash_senha(senha: str) -> str:
     return hashlib.sha256(senha.encode()).hexdigest()
+
 
 def criar_token(colaborador_id: str) -> str:
     payload = {
         "sub": colaborador_id,
         "tipo": "colaborador",
-        "exp": datetime.utcnow() + timedelta(days=30)
+        "exp": datetime.utcnow() + timedelta(days=30),
     }
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
 
 def decodificar_token(token: str) -> dict:
     try:
@@ -78,6 +72,7 @@ def decodificar_token(token: str) -> dict:
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Token inválido")
 
+
 def is_aprovador(colaborador: dict) -> bool:
     if colaborador.get("is_admin"):
         return True
@@ -85,23 +80,22 @@ def is_aprovador(colaborador: dict) -> bool:
     return cargo_restrito in CARGOS_APROVADORES
 
 
-# ── Factory ───────────────────────────────────────────────────────────────────
-
 def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
-    router = APIRouter(tags=["Colaboradores"])
+    router = APIRouter(prefix="/colaboradores", tags=["Colaboradores"])
 
     async def get_colaborador_atual(
-        credentials: HTTPAuthorizationCredentials = Depends(security)
+        credentials: HTTPAuthorizationCredentials = Depends(security),
     ):
         payload = decodificar_token(credentials.credentials)
         if payload.get("tipo") != "colaborador":
             raise HTTPException(status_code=403, detail="Acesso negado")
+
         colaborador = await db.colaboradores.find_one({"id": payload["sub"]})
         if not colaborador:
             raise HTTPException(status_code=404, detail="Colaborador não encontrado")
+
         return colaborador
 
-    # ── Listar cargos ─────────────────────────────────────────────────────────
     @router.get("/cargos")
     async def listar_cargos():
         return {
@@ -110,11 +104,10 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
                 "Atendente",
                 "Secretário local",
                 "Secretário Regional",
-                "Ancião Coordenador"
+                "Ancião Coordenador",
             ]
         }
 
-    # ── Cadastro ──────────────────────────────────────────────────────────────
     @router.post("/cadastro")
     async def cadastrar(
         nome_completo: str = Form(...),
@@ -125,6 +118,8 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
         cargo_outro: Optional[str] = Form(None),
         foto: UploadFile = File(...),
     ):
+        whatsapp_normalizado = normalize_phone(whatsapp)
+
         conteudo = await foto.read()
         if not conteudo:
             raise HTTPException(status_code=400, detail="Foto é obrigatória")
@@ -143,7 +138,7 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
 
         foto_url = f"/static/uploads/{nome_arquivo}"
 
-        existente = await db.colaboradores.find_one({"whatsapp": whatsapp})
+        existente = await db.colaboradores.find_one({"whatsapp": whatsapp_normalizado})
         if existente:
             raise HTTPException(status_code=400, detail="WhatsApp já cadastrado")
 
@@ -154,9 +149,10 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
             "id": colaborador_id,
             "nome_completo": nome_completo,
             "comum_congregacao": comum_congregacao,
-            "whatsapp": whatsapp,
+            "whatsapp": whatsapp_normalizado,
             "senha": hash_senha(senha),
             "cargo_funcao_ministerio": cargo_funcao_ministerio,
+            "cargo_outro": cargo_outro,
             "qr_token": qr_token,
             "criado_em": datetime.utcnow().isoformat(),
             "foto_url": foto_url,
@@ -170,18 +166,19 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
         return {
             "token": token,
             "qr_token": qr_token,
-            "colaborador": novo
+            "colaborador": novo,
         }
 
-    # ── Login ─────────────────────────────────────────────────────────────────
     @router.post("/login")
     async def login(dados: ColaboradorLogin):
         whatsapp = normalize_phone(dados.whatsapp)
 
-        colaborador = await db.colaboradores.find_one({
-            "whatsapp": whatsapp,
-            "senha": hash_senha(dados.senha)
-        })
+        colaborador = await db.colaboradores.find_one(
+            {
+                "whatsapp": whatsapp,
+                "senha": hash_senha(dados.senha),
+            }
+        )
 
         if not colaborador:
             raise HTTPException(status_code=401, detail="Credenciais inválidas")
@@ -191,7 +188,7 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
         return {
             "token": token,
             "qr_token": colaborador["qr_token"],
-            "colaborador": colaborador
+            "colaborador": colaborador,
         }
 
     return router
