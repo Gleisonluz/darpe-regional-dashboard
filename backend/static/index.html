@@ -985,6 +985,19 @@ document.addEventListener('keydown', e => {
     a && a.textContent === 'Entrar' ? doLogin() : doCad();
   }
 });
+document.addEventListener("DOMContentLoaded", () => {
+  loadCargos();
+
+  document.getElementById("c-foto").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    const preview = document.getElementById("c-foto-preview");
+
+    if (file) {
+      preview.src = URL.createObjectURL(file);
+      preview.style.display = "block";
+    }
+  });
+});
 </script>
 </body>
 </html>

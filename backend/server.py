@@ -154,4 +154,4 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 # Servir o index.html na raiz
 @app.get("/")
 async def serve_index():
-    return FileResponse(STATIC_DIR / "index.html")
+   return FileResponse(str(STATIC_DIR / "index.html"))
