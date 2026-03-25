@@ -2,7 +2,8 @@ from fastapi import FastAPI, APIRouter
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
-
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 import os
 import logging
 from pathlib import Path
@@ -141,11 +142,11 @@ async def startup_event():
 async def shutdown_db_client():
     client.close()
 
-    from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
+   
+
 
 # Caminho da pasta static
-STATIC_DIR = ROOT_DIR / "static"
+STATIC_DIR = Path(__file__).parent / "static"
 
 # Servir arquivos estáticos (JS, CSS, imagens)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
