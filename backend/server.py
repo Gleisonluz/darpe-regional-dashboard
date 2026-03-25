@@ -140,3 +140,17 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
+    from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
+# Caminho da pasta static
+STATIC_DIR = ROOT_DIR / "static"
+
+# Servir arquivos estáticos (JS, CSS, imagens)
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+# Servir o index.html na raiz
+@app.get("/")
+async def serve_index():
+    return FileResponse(STATIC_DIR / "index.html")
