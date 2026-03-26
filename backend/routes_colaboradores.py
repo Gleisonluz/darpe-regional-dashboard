@@ -26,21 +26,26 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
         try:
             whatsapp = normalize_phone(dados.whatsapp)
 
-            existente = await db.colaboradores.find_one({
-                "whatsapp": whatsapp
-            })
+            existente = await db.colaboradores.find_one(
+                {
+                    "$or": [
+                        {"whatsapp": whatsapp},
+                        {"WhatsApp": whatsapp},
+                    ]
+                }
+            )
 
             if existente:
                 return JSONResponse(
                     status_code=400,
-                    content={"erro": "Já existe usuário"}
+                    content={"erro": "Já existe usuário"},
                 )
 
             novo = {
                 "id": str(uuid.uuid4()),
                 "whatsapp": whatsapp,
                 "senha": hash_senha(dados.senha),
-                "criado_em": datetime.utcnow().isoformat()
+                "criado_em": datetime.utcnow().isoformat(),
             }
 
             await db.colaboradores.insert_one(novo)
@@ -50,7 +55,7 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
         except Exception as e:
             return JSONResponse(
                 status_code=500,
-                content={"erro": str(e)}
+                content={"erro": str(e)},
             )
 
     @router.post("/login")
@@ -58,7 +63,6 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
         try:
             whatsapp_original = dados.whatsapp.strip()
             whatsapp_normalizado = normalize_phone(dados.whatsapp)
-
             senha_hash = hash_senha(dados.senha)
 
             candidatos = []
@@ -77,34 +81,47 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
 
             candidatos = list(dict.fromkeys(candidatos))
 
-            colaborador = await db.colaboradores.find_one({
-                "whatsapp": {"$in": candidatos}
-            })
+            colaborador = await db.colaboradores.find_one(
+                {
+                    "$or": [
+                        {"whatsapp": {"$in": candidatos}},
+                        {"WhatsApp": {"$in": candidatos}},
+                    ]
+                }
+            )
 
             if not colaborador:
                 return JSONResponse(
                     status_code=401,
-                    content={"erro": "WhatsApp ou senha incorretos"}
+                    content={"erro": "WhatsApp ou senha incorretos"},
                 )
 
             if colaborador["senha"] != senha_hash:
                 return JSONResponse(
                     status_code=401,
-                    content={"erro": "WhatsApp ou senha incorretos"}
+                    content={"erro": "WhatsApp ou senha incorretos"},
                 )
+
+            if colaborador.get("WhatsApp") and not colaborador.get("whatsapp"):
+                whatsapp_corrigido = normalize_phone(colaborador["WhatsApp"])
+                await db.colaboradores.update_one(
+                    {"_id": colaborador["_id"]},
+                    {"$set": {"whatsapp": whatsapp_corrigido}},
+                )
+                colaborador["whatsapp"] = whatsapp_corrigido
 
             return {
                 "ok": True,
                 "colaborador": {
                     "id": colaborador.get("id"),
-                    "whatsapp": colaborador.get("whatsapp")
-                }
+                    "whatsapp": colaborador.get("whatsapp") or colaborador.get("WhatsApp"),
+                },
             }
 
         except Exception as e:
             return JSONResponse(
                 status_code=500,
-                content={"erro": str(e)}
+                content={"erro": str(e)},
             )
 
     return router
