@@ -199,7 +199,8 @@
       color:#9b9b9b;
     }
 
-    .screen-home{
+    .screen-home,
+    .screen-section{
       display:none;
       text-align:left;
       background:var(--card);
@@ -208,7 +209,8 @@
       padding:22px;
     }
 
-    .screen-home.active{display:block}
+    .screen-home.active,
+    .screen-section.active{display:block}
 
     .welcome{
       font-size:16px;
@@ -252,11 +254,18 @@
       display:flex;
       flex-direction:column;
       justify-content:flex-end;
+      cursor:pointer;
+      text-align:left;
     }
 
     .action.dark{
       background:#141414;
       color:#fff;
+    }
+
+    .action h4,
+    .action p{
+      pointer-events:none;
     }
 
     .action h4{
@@ -273,7 +282,8 @@
 
     .topbar{
       display:flex;
-      justify-content:flex-end;
+      justify-content:space-between;
+      gap:12px;
       margin-bottom:10px;
     }
 
@@ -290,6 +300,36 @@
       margin-top:8px;
       font-size:13px;
       color:#7a7a7a;
+    }
+
+    .section-content{
+      margin-top:18px;
+      line-height:1.8;
+      font-size:17px;
+      color:#303030;
+    }
+
+    .section-card{
+      background:#fff;
+      border:1px solid #ddd;
+      border-radius:16px;
+      padding:18px;
+      margin-top:14px;
+    }
+
+    .section-label{
+      font-size:12px;
+      letter-spacing:2px;
+      text-transform:uppercase;
+      color:#888;
+      margin-bottom:6px;
+      font-weight:700;
+    }
+
+    .section-value{
+      font-size:18px;
+      color:#171717;
+      word-break:break-word;
     }
 
     @media (max-width:560px){
@@ -383,14 +423,15 @@
         </div>
 
         <div class="footer">
-          "E disse-lhes: Ide por todo o mundo,<br>
-          pregai o evangelho a toda criatura."
+          “E disse-lhes: Ide por todo o mundo,<br>
+          pregai o evangelho a toda criatura.”
           <span class="ref">MARCOS 16:15</span>
         </div>
       </div>
 
       <div id="screen-home" class="screen-home">
         <div class="topbar">
+          <div></div>
           <button id="btn-logout" class="logout" type="button">Sair</button>
         </div>
 
@@ -401,29 +442,41 @@
         </div>
 
         <div class="home-actions">
-          <div class="action dark">
+          <button class="action dark" type="button" onclick="openSection('credencial')">
             <h4>Credencial</h4>
             <p>Carteirinha digital</p>
-          </div>
-          <div class="action">
+          </button>
+
+          <button class="action" type="button" onclick="openSection('presencas')">
             <h4>Presenças</h4>
             <p>Histórico</p>
-          </div>
-          <div class="action">
+          </button>
+
+          <button class="action" type="button" onclick="openSection('perfil')">
             <h4>Perfil</h4>
             <p>Meus dados</p>
-          </div>
-          <div class="action">
+          </button>
+
+          <button class="action" type="button" onclick="openSection('ensinamentos')">
             <h4>Ensinamentos</h4>
             <p>DARPE</p>
-          </div>
+          </button>
         </div>
+      </div>
+
+      <div id="screen-section" class="screen-section">
+        <div class="topbar">
+          <button class="logout" type="button" onclick="backHome()">Voltar</button>
+          <button class="logout" type="button" onclick="logout()">Sair</button>
+        </div>
+
+        <div id="section-title" class="name" style="font-size:32px;">Seção</div>
+        <div id="section-content" class="section-content"></div>
       </div>
     </div>
   </div>
 
   <script>
-    // ✅ CORRIGIDO: prefixo /api para bater nas rotas do FastAPI
     const API = "/api";
     let user = {};
     let token = "";
@@ -443,6 +496,8 @@
     function showAuth(tab = "login") {
       document.getElementById("screen-auth").style.display = "block";
       document.getElementById("screen-home").classList.remove("active");
+      document.getElementById("screen-section").classList.remove("active");
+      document.getElementById("screen-section").style.display = "none";
 
       const tabLogin = document.getElementById("tab-login");
       const tabCadastro = document.getElementById("tab-cadastro");
@@ -464,6 +519,8 @@
 
     function showHome() {
       document.getElementById("screen-auth").style.display = "none";
+      document.getElementById("screen-section").classList.remove("active");
+      document.getElementById("screen-section").style.display = "none";
       document.getElementById("screen-home").classList.add("active");
       fill();
     }
@@ -477,9 +534,80 @@
       document.getElementById("home-wpp").textContent = whatsapp;
     }
 
+    function openSection(section) {
+      document.getElementById("screen-home").classList.remove("active");
+
+      const screen = document.getElementById("screen-section");
+      const title = document.getElementById("section-title");
+      const content = document.getElementById("section-content");
+
+      let html = "";
+
+      if (section === "credencial") {
+        title.textContent = "Credencial";
+        html = `
+          <div class="section-card">
+            <div class="section-label">Nome</div>
+            <div class="section-value">${user?.nome_completo || user?.nome || "—"}</div>
+          </div>
+          <div class="section-card">
+            <div class="section-label">WhatsApp</div>
+            <div class="section-value">${user?.whatsapp || user?.WhatsApp || "—"}</div>
+          </div>
+          <div class="section-card">
+            <div class="section-label">ID</div>
+            <div class="section-value">${user?.id || "—"}</div>
+          </div>
+        `;
+      }
+
+      if (section === "presencas") {
+        title.textContent = "Presenças";
+        html = `
+          <div class="section-card">
+            <div class="section-label">Histórico</div>
+            <div class="section-value">Área de presenças pronta para integração.</div>
+          </div>
+        `;
+      }
+
+      if (section === "perfil") {
+        title.textContent = "Perfil";
+        html = `
+          <div class="section-card">
+            <div class="section-label">Nome</div>
+            <div class="section-value">${user?.nome_completo || user?.nome || "—"}</div>
+          </div>
+          <div class="section-card">
+            <div class="section-label">WhatsApp</div>
+            <div class="section-value">${user?.whatsapp || user?.WhatsApp || "—"}</div>
+          </div>
+        `;
+      }
+
+      if (section === "ensinamentos") {
+        title.textContent = "Ensinamentos";
+        html = `
+          <div class="section-card">
+            <div class="section-label">Conteúdo</div>
+            <div class="section-value">Área de ensinamentos pronta para integração.</div>
+          </div>
+        `;
+      }
+
+      content.innerHTML = html;
+      screen.style.display = "block";
+      screen.classList.add("active");
+    }
+
+    function backHome() {
+      document.getElementById("screen-section").style.display = "none";
+      document.getElementById("screen-section").classList.remove("active");
+      showHome();
+    }
+
     async function loadCargos() {
       try {
-        // ✅ CORRIGIDO: rota completa com /api
         const r = await fetch(`${API}/colaboradores/cargos`);
         const d = await r.json();
         const sel = document.getElementById("c-cargo");
@@ -539,7 +667,6 @@
         }
         fd.append("foto", foto);
 
-        // ✅ CORRIGIDO: rota completa com /api
         const r = await fetch(`${API}/colaboradores/cadastro`, {
           method: "POST",
           body: fd
@@ -582,7 +709,6 @@
       btn.textContent = "ENTRANDO...";
 
       try {
-        // ✅ CORRIGIDO: rota /api/colaboradores/login (sistema de colaboradores)
         const r = await fetch(`${API}/colaboradores/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
