@@ -1,52 +1,12 @@
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from pydantic import BaseModel
-from typing import Optional
-import uuid
 import hashlib
-import jwt
-import os
-import traceback
-from datetime import datetime, timedelta
+from datetime import datetime
+import uuid
 
 from .phone_utils import normalize_phone
-
-SECRET_KEY = os.environ.get("SECRET_KEY", "darpe-secret-key")
-ALGORITHM = "HS256"
-security = HTTPBearer()
-
-
-CARGOS_RESTRITOS = [
-    "Secretario Regional",
-    "Secretario Local",
-    "Atendente DARPE",
-    "Anciao Coordenador",
-]
-
-CARGOS_MINISTERIO = [
-    "Musico",
-    "Diacono",
-    "Anciao",
-    "Cooperador de Jovens e Menores",
-    "Cooperador do Oficio Ministerial",
-    "Porteiro",
-    "Auxiliar de Jovens e Menores",
-    "Colaborador(a) do EBI",
-    "Encarregado de Orquestra Local",
-    "Encarregado de Orquestra Regional",
-    "Organista",
-    "Examinadora",
-    "Obra da Piedade",
-    "Administracao",
-    "Outro",
-]
-
-CARGOS_APROVADORES = [
-    "Secretario Regional",
-    "Anciao Coordenador",
-]
 
 
 class ColaboradorLogin(BaseModel):
@@ -58,252 +18,93 @@ def hash_senha(senha: str) -> str:
     return hashlib.sha256(senha.encode()).hexdigest()
 
 
-def criar_token(colaborador_id: str) -> str:
-    payload = {
-        "sub": colaborador_id,
-        "tipo": "colaborador",
-        "exp": datetime.utcnow() + timedelta(days=30),
-    }
-    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
-
-
-def decodificar_token(token: str) -> dict:
-    try:
-        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expirado")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Token inválido")
-
-
-def is_aprovador(colaborador: dict) -> bool:
-    if colaborador.get("is_admin"):
-        return True
-    cargo_restrito = colaborador.get("cargo_restrito", "")
-    return cargo_restrito in CARGOS_APROVADORES
-
-
 def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
     router = APIRouter(prefix="/colaboradores", tags=["Colaboradores"])
 
-    async def get_colaborador_atual(
-        credentials: HTTPAuthorizationCredentials = Depends(security),
-    ):
-        payload = decodificar_token(credentials.credentials)
-
-        if payload.get("tipo") != "colaborador":
-            raise HTTPException(status_code=403, detail="Acesso negado")
-
-        colaborador = await db.colaboradores.find_one({"id": payload["sub"]})
-        if not colaborador:
-            raise HTTPException(status_code=404, detail="Colaborador não encontrado")
-
-        return colaborador
-
-    @router.get("/cargos")
-    async def listar_cargos():
-        return {
-            "cargos": [
-                "Colaborador",
-                "Atendente",
-                "Secretário local",
-                "Secretário Regional",
-                "Ancião Coordenador",
-            ]
-        }
-
     @router.post("/cadastro")
-    async def cadastrar(
-        nome_completo: str = Form(...),
-        comum_congregacao: str = Form(...),
-        whatsapp: str = Form(...),
-        senha: str = Form(...),
-        cargo_funcao_ministerio: str = Form(...),
-        cargo_outro: Optional[str] = Form(None),
-        foto: UploadFile = File(...),
-    ):
+    async def cadastrar(dados: ColaboradorLogin):
         try:
-            whatsapp_normalizado = normalize_phone(whatsapp)
+            whatsapp = normalize_phone(dados.whatsapp)
 
-            conteudo = await foto.read()
-            if not conteudo:
-                return JSONResponse(
-                    status_code=400,
-                    content={"erro": "Foto é obrigatória"},
-                )
+            existente = await db.colaboradores.find_one({
+                "whatsapp": whatsapp
+            })
 
-            ext = foto.filename.rsplit(".", 1)[-1].lower() if foto.filename else "jpg"
-            if ext not in ["jpg", "jpeg", "png", "webp"]:
-                return JSONResponse(
-                    status_code=400,
-                    content={"erro": "Formato de foto inválido"},
-                )
-
-            base_dir = os.path.dirname(os.path.abspath(__file__))
-            pasta = os.path.join(base_dir, "static", "uploads")
-            os.makedirs(pasta, exist_ok=True)
-
-            nome_arquivo = f"{uuid.uuid4()}.{ext}"
-            caminho = os.path.join(pasta, nome_arquivo)
-
-            with open(caminho, "wb") as f:
-                f.write(conteudo)
-
-            foto_url = f"/static/uploads/{nome_arquivo}"
-
-            existente = await db.colaboradores.find_one(
-                {"whatsapp": whatsapp_normalizado}
-            )
             if existente:
                 return JSONResponse(
                     status_code=400,
-                    content={"erro": "WhatsApp já cadastrado"},
+                    content={"erro": "Já existe usuário"}
                 )
 
-            colaborador_id = str(uuid.uuid4())
-            qr_token = str(uuid.uuid4())
-
             novo = {
-                "id": colaborador_id,
-                "nome_completo": nome_completo,
-                "comum_congregacao": comum_congregacao,
-                "whatsapp": whatsapp_normalizado,
-                "senha": hash_senha(senha),
-                "cargo_funcao_ministerio": cargo_funcao_ministerio,
-                "cargo_outro": cargo_outro,
-                "qr_token": qr_token,
-                "criado_em": datetime.utcnow().isoformat(),
-                "foto_url": foto_url,
-                "ativo": True,
-                "status": "ativo",
+                "id": str(uuid.uuid4()),
+                "whatsapp": whatsapp,
+                "senha": hash_senha(dados.senha),
+                "criado_em": datetime.utcnow().isoformat()
             }
 
             await db.colaboradores.insert_one(novo)
-            token = criar_token(colaborador_id)
 
-            colaborador_limpo = {
-                "id": novo["id"],
-                "nome_completo": novo["nome_completo"],
-                "comum_congregacao": novo["comum_congregacao"],
-                "whatsapp": novo["whatsapp"],
-                "cargo_funcao_ministerio": novo["cargo_funcao_ministerio"],
-                "cargo_outro": novo.get("cargo_outro"),
-                "qr_token": novo["qr_token"],
-                "criado_em": novo["criado_em"],
-                "foto_url": novo["foto_url"],
-                "ativo": novo["ativo"],
-                "status": novo["status"],
-            }
-
-            return {
-                "ok": True,
-                "token": token,
-                "qr_token": qr_token,
-                "colaborador": colaborador_limpo,
-            }
+            return {"ok": True}
 
         except Exception as e:
-            print("ERRO CADASTRO:")
-            print(str(e))
-            print(traceback.format_exc())
-
             return JSONResponse(
                 status_code=500,
-                content={
-                    "erro": "Erro interno no servidor",
-                    "detalhe": str(e),
-                },
+                content={"erro": str(e)}
             )
 
     @router.post("/login")
     async def login(dados: ColaboradorLogin):
         try:
+            whatsapp_original = dados.whatsapp.strip()
             whatsapp_normalizado = normalize_phone(dados.whatsapp)
-            senha_digitada = dados.senha
-            senha_hash = hash_senha(senha_digitada)
 
-            candidatos_whatsapp = []
+            senha_hash = hash_senha(dados.senha)
 
-            if dados.whatsapp:
-                candidatos_whatsapp.append(dados.whatsapp.strip())
+            candidatos = []
+
+            if whatsapp_original:
+                candidatos.append(whatsapp_original)
 
             if whatsapp_normalizado:
-                candidatos_whatsapp.append(whatsapp_normalizado)
+                candidatos.append(whatsapp_normalizado)
 
                 if len(whatsapp_normalizado) >= 11:
-                    candidatos_whatsapp.append(whatsapp_normalizado[-11:])
-                    candidatos_whatsapp.append(f"+55{whatsapp_normalizado[-11:]}")
+                    ult = whatsapp_normalizado[-11:]
+                    candidatos.append(ult)
+                    candidatos.append(f"55{ult}")
+                    candidatos.append(f"+55{ult}")
 
-            candidatos_whatsapp = list(dict.fromkeys(candidatos_whatsapp))
+            candidatos = list(dict.fromkeys(candidatos))
 
-            colaborador = await db.colaboradores.find_one(
-                {"whatsapp": {"$in": candidatos_whatsapp}}
-            )
+            colaborador = await db.colaboradores.find_one({
+                "whatsapp": {"$in": candidatos}
+            })
 
             if not colaborador:
                 return JSONResponse(
                     status_code=401,
-                    content={"erro": "WhatsApp ou senha incorretos"},
+                    content={"erro": "WhatsApp ou senha incorretos"}
                 )
 
-            senha_salva = colaborador.get("senha", "")
-
-            if senha_salva not in [senha_digitada, senha_hash]:
+            if colaborador["senha"] != senha_hash:
                 return JSONResponse(
                     status_code=401,
-                    content={"erro": "WhatsApp ou senha incorretos"},
+                    content={"erro": "WhatsApp ou senha incorretos"}
                 )
-
-            atualizacoes = {}
-
-            if senha_salva == senha_digitada:
-                atualizacoes["senha"] = senha_hash
-                colaborador["senha"] = senha_hash
-
-            if colaborador.get("whatsapp") != whatsapp_normalizado:
-                atualizacoes["whatsapp"] = whatsapp_normalizado
-                colaborador["whatsapp"] = whatsapp_normalizado
-
-            if atualizacoes:
-                await db.colaboradores.update_one(
-                    {"id": colaborador["id"]},
-                    {"$set": atualizacoes},
-                )
-
-            token = criar_token(colaborador["id"])
-
-            colaborador_limpo = {
-                "id": colaborador.get("id"),
-                "nome_completo": colaborador.get("nome_completo"),
-                "comum_congregacao": colaborador.get("comum_congregacao"),
-                "whatsapp": colaborador.get("whatsapp"),
-                "cargo_funcao_ministerio": colaborador.get("cargo_funcao_ministerio"),
-                "cargo_outro": colaborador.get("cargo_outro"),
-                "qr_token": colaborador.get("qr_token"),
-                "criado_em": colaborador.get("criado_em"),
-                "foto_url": colaborador.get("foto_url"),
-                "ativo": colaborador.get("ativo"),
-                "status": colaborador.get("status"),
-            }
 
             return {
                 "ok": True,
-                "token": token,
-                "qr_token": colaborador.get("qr_token"),
-                "colaborador": colaborador_limpo,
+                "colaborador": {
+                    "id": colaborador.get("id"),
+                    "whatsapp": colaborador.get("whatsapp")
+                }
             }
 
         except Exception as e:
-            print("ERRO LOGIN:")
-            print(str(e))
-            print(traceback.format_exc())
-
             return JSONResponse(
                 status_code=500,
-                content={
-                    "erro": "Erro interno no servidor",
-                    "detalhe": str(e),
-                },
+                content={"erro": str(e)}
             )
 
     return router
