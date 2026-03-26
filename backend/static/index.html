@@ -656,7 +656,7 @@ async function loadCargos() {
     });
 
     sel.onchange = () => {
-      const outroWrap = document.getElementById('wrap-cargo-outro');
+      const outroWrap = document.getElementById('outro-g');
       if (outroWrap) {
         outroWrap.style.display = sel.value === 'Outro' ? 'block' : 'none';
       }
@@ -666,6 +666,57 @@ async function loadCargos() {
   }
 }
 
+async function doLogin() {
+  const w = document.getElementById('l-wpp').value.trim();
+  const s = document.getElementById('l-pw').value.trim();
+  const err = document.getElementById('login-err');
+
+  err.classList.remove('show');
+  err.textContent = '';
+
+  if (!w || !s) {
+    err.textContent = 'Preencha todos os campos.';
+    err.classList.add('show');
+    return;
+  }
+
+  const btn = document.getElementById('btn-login');
+  btn.innerHTML = '<span class="spin"></span>';
+  btn.disabled = true;
+
+  try {
+    const r = await fetch(`${API}/colaboradores/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ whatsapp: w, senha: s })
+    });
+
+    const d = await r.json();
+
+    if (!r.ok) {
+      throw new Error(d.erro || d.detail || 'Erro ao entrar');
+    }
+
+    token = d.token;
+    user = d.colaborador || {};
+
+    localStorage.setItem('darpe_token', token);
+    localStorage.setItem('darpe_user', JSON.stringify(user));
+
+    fill();
+    show('home');
+    if (typeof showNav === 'function') showNav();
+    if (typeof showToast === 'function') {
+      showToast('Bem-vindo, ' + ((user.nome_completo || 'irmão').split(' ')[0]) + '!');
+    }
+  } catch (e) {
+    err.textContent = e.message || 'Erro ao entrar';
+    err.classList.add('show');
+  } finally {
+    btn.innerHTML = 'ENTRAR';
+    btn.disabled = false;
+  }
+}
 // ── LOGIN ───────────────────────────────────────────────────────────────────
 async function doLogin() {
   const w = document.getElementById('l-wpp').value.trim();
