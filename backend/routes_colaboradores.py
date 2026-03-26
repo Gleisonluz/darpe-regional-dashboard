@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Form, UploadFile, File
 from fastapi.responses import JSONResponse
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from pydantic import BaseModel
@@ -6,6 +6,8 @@ import hashlib
 from datetime import datetime
 import uuid
 import traceback
+import base64
+from typing import Optional
 
 from .phone_utils import normalize_phone
 
@@ -13,15 +15,6 @@ from .phone_utils import normalize_phone
 class ColaboradorLogin(BaseModel):
     whatsapp: str
     senha: str
-
-
-class ColaboradorCadastro(BaseModel):
-    nome_completo: str
-    comum_congregacao: str
-    whatsapp: str
-    senha: str
-    cargo_funcao_ministerio: str | None = None
-    cargo_outro: str | None = None
 
 
 def hash_senha(senha: str) -> str:
@@ -45,15 +38,24 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
         }
 
     @router.post("/cadastro")
-    async def cadastrar(dados: ColaboradorCadastro):
+    async def cadastrar(
+        # ✅ CORRIGIDO: recebe FormData (compatível com frontend que envia foto)
+        nome_completo: str = Form(...),
+        comum_congregacao: str = Form(...),
+        whatsapp: str = Form(...),
+        senha: str = Form(...),
+        cargo_funcao_ministerio: Optional[str] = Form(None),
+        cargo_outro: Optional[str] = Form(None),
+        foto: Optional[UploadFile] = File(None),
+    ):
         try:
-            whatsapp = normalize_phone(dados.whatsapp)
+            whatsapp_normalizado = normalize_phone(whatsapp)
 
             existente = await db.colaboradores.find_one(
                 {
                     "$or": [
-                        {"whatsapp": whatsapp},
-                        {"WhatsApp": whatsapp},
+                        {"whatsapp": whatsapp_normalizado},
+                        {"WhatsApp": whatsapp_normalizado},
                     ]
                 }
             )
@@ -64,14 +66,24 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
                     content={"erro": "Já existe usuário cadastrado com esse WhatsApp."},
                 )
 
+            # ✅ Processar foto se enviada
+            foto_base64 = None
+            foto_content_type = None
+            if foto and foto.filename:
+                conteudo = await foto.read()
+                foto_base64 = base64.b64encode(conteudo).decode("utf-8")
+                foto_content_type = foto.content_type
+
             novo = {
                 "id": str(uuid.uuid4()),
-                "nome_completo": dados.nome_completo,
-                "comum_congregacao": dados.comum_congregacao,
-                "whatsapp": whatsapp,
-                "senha": hash_senha(dados.senha),
-                "cargo_funcao_ministerio": dados.cargo_funcao_ministerio,
-                "cargo_outro": dados.cargo_outro,
+                "nome_completo": nome_completo,
+                "comum_congregacao": comum_congregacao,
+                "whatsapp": whatsapp_normalizado,
+                "senha": hash_senha(senha),
+                "cargo_funcao_ministerio": cargo_funcao_ministerio,
+                "cargo_outro": cargo_outro,
+                "foto_base64": foto_base64,
+                "foto_content_type": foto_content_type,
                 "criado_em": datetime.utcnow().isoformat(),
                 "ativo": True,
                 "status": "ATIVO",
@@ -90,6 +102,8 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
                     "cargo_outro": novo.get("cargo_outro"),
                     "ativo": novo.get("ativo"),
                     "status": novo.get("status"),
+                    "foto_base64": foto_base64,
+                    "foto_content_type": foto_content_type,
                 },
             }
 
@@ -109,7 +123,6 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
             whatsapp_normalizado = normalize_phone(dados.whatsapp)
             senha_hash = hash_senha(dados.senha)
 
-            # Montar lista de variações do número para busca
             candidatos = []
 
             if whatsapp_original:
@@ -126,7 +139,6 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
 
             candidatos = list(dict.fromkeys(candidatos))
 
-            # ✅ Buscar colaborador no banco
             colaborador = await db.colaboradores.find_one(
                 {
                     "$or": [
@@ -142,14 +154,12 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
                     content={"erro": "WhatsApp ou senha incorretos"},
                 )
 
-            # ✅ Verificar senha
             if colaborador.get("senha") != senha_hash:
                 return JSONResponse(
                     status_code=401,
                     content={"erro": "WhatsApp ou senha incorretos"},
                 )
 
-            # Migrar campo WhatsApp → whatsapp se necessário
             if colaborador.get("WhatsApp") and not colaborador.get("whatsapp"):
                 whatsapp_corrigido = normalize_phone(colaborador["WhatsApp"])
                 await db.colaboradores.update_one(
@@ -169,6 +179,8 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
                     "cargo_outro": colaborador.get("cargo_outro"),
                     "ativo": colaborador.get("ativo"),
                     "status": colaborador.get("status"),
+                    "foto_base64": colaborador.get("foto_base64"),
+                    "foto_content_type": colaborador.get("foto_content_type"),
                 },
             }
 
