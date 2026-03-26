@@ -137,7 +137,6 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
                     content={"erro": "Formato de foto inválido"},
                 )
 
-            # salva em backend/static/uploads
             base_dir = os.path.dirname(os.path.abspath(__file__))
             pasta = os.path.join(base_dir, "static", "uploads")
             os.makedirs(pasta, exist_ok=True)
@@ -180,11 +179,25 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
             await db.colaboradores.insert_one(novo)
             token = criar_token(colaborador_id)
 
+            colaborador_limpo = {
+                "id": novo["id"],
+                "nome_completo": novo["nome_completo"],
+                "comum_congregacao": novo["comum_congregacao"],
+                "whatsapp": novo["whatsapp"],
+                "cargo_funcao_ministerio": novo["cargo_funcao_ministerio"],
+                "cargo_outro": novo.get("cargo_outro"),
+                "qr_token": novo["qr_token"],
+                "criado_em": novo["criado_em"],
+                "foto_url": novo["foto_url"],
+                "ativo": novo["ativo"],
+                "status": novo["status"],
+            }
+
             return {
                 "ok": True,
                 "token": token,
                 "qr_token": qr_token,
-                "colaborador": novo,
+                "colaborador": colaborador_limpo,
             }
 
         except Exception as e:
@@ -220,11 +233,25 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
 
             token = criar_token(colaborador["id"])
 
+            colaborador_limpo = {
+                "id": colaborador.get("id"),
+                "nome_completo": colaborador.get("nome_completo"),
+                "comum_congregacao": colaborador.get("comum_congregacao"),
+                "whatsapp": colaborador.get("whatsapp"),
+                "cargo_funcao_ministerio": colaborador.get("cargo_funcao_ministerio"),
+                "cargo_outro": colaborador.get("cargo_outro"),
+                "qr_token": colaborador.get("qr_token"),
+                "criado_em": colaborador.get("criado_em"),
+                "foto_url": colaborador.get("foto_url"),
+                "ativo": colaborador.get("ativo"),
+                "status": colaborador.get("status"),
+            }
+
             return {
                 "ok": True,
                 "token": token,
                 "qr_token": colaborador.get("qr_token"),
-                "colaborador": colaborador,
+                "colaborador": colaborador_limpo,
             }
 
         except Exception as e:
