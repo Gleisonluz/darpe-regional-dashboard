@@ -61,7 +61,7 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
             if existente:
                 return JSONResponse(
                     status_code=400,
-                    content={"erro": "Já existe usuário"},
+                    content={"erro": "Já existe usuário cadastrado com esse WhatsApp."},
                 )
 
             novo = {
@@ -109,6 +109,7 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
             whatsapp_normalizado = normalize_phone(dados.whatsapp)
             senha_hash = hash_senha(dados.senha)
 
+            # Montar lista de variações do número para busca
             candidatos = []
 
             if whatsapp_original:
@@ -125,6 +126,7 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
 
             candidatos = list(dict.fromkeys(candidatos))
 
+            # ✅ Buscar colaborador no banco
             colaborador = await db.colaboradores.find_one(
                 {
                     "$or": [
@@ -140,12 +142,14 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
                     content={"erro": "WhatsApp ou senha incorretos"},
                 )
 
+            # ✅ Verificar senha
             if colaborador.get("senha") != senha_hash:
                 return JSONResponse(
                     status_code=401,
                     content={"erro": "WhatsApp ou senha incorretos"},
                 )
 
+            # Migrar campo WhatsApp → whatsapp se necessário
             if colaborador.get("WhatsApp") and not colaborador.get("whatsapp"):
                 whatsapp_corrigido = normalize_phone(colaborador["WhatsApp"])
                 await db.colaboradores.update_one(

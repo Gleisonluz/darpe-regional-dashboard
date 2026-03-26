@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from motor.motor_asyncio import AsyncIOMotorDatabase
+from typing import List, Optional
 
 from backend.models import *
 from backend.security import get_password_hash, verify_password, create_access_token, get_current_user
@@ -47,8 +48,9 @@ def create_auth_router(db: AsyncIOMotorDatabase) -> APIRouter:
         # Normalizar WhatsApp antes de buscar
         normalized_whatsapp = normalize_phone(credentials.whatsapp)
 
-        # Buscar usuário por WhatsApp normalizado
+        # ✅ CORRIGIDO: buscar usuário no banco antes de verificar senha
         user = await db.users.find_one({"whatsapp": normalized_whatsapp}, {"_id": 0})
+
         if not user or not verify_password(credentials.senha, user["senha"]):
             raise HTTPException(status_code=401, detail="WhatsApp ou senha incorretos")
 
@@ -65,13 +67,7 @@ def create_auth_router(db: AsyncIOMotorDatabase) -> APIRouter:
             }
         )
 
-        print("DEBUG USER >>>", user)
-        print("DEBUG CARGO_BASE >>>", user.get("cargo_base"))
-        print("DEBUG CARGO_RESTRITO >>>", user.get("cargo_restrito"))
-
         user.pop("senha")
-
-        print("DEGUG USER FINAL >>>", user)
 
         return Token(access_token=access_token, user=User(**user))
 
