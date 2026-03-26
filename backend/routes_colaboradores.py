@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.responses import JSONResponse
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from pydantic import BaseModel
 from typing import Optional
@@ -7,6 +8,7 @@ import uuid
 import hashlib
 import jwt
 import os
+import traceback
 from datetime import datetime, timedelta
 
 from .phone_utils import normalize_phone
@@ -118,77 +120,124 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
         cargo_outro: Optional[str] = Form(None),
         foto: UploadFile = File(...),
     ):
-        whatsapp_normalizado = normalize_phone(whatsapp)
+        try:
+            whatsapp_normalizado = normalize_phone(whatsapp)
 
-        conteudo = await foto.read()
-        if not conteudo:
-            raise HTTPException(status_code=400, detail="Foto é obrigatória")
+            conteudo = await foto.read()
+            if not conteudo:
+                return JSONResponse(
+                    status_code=400,
+                    content={"erro": "Foto é obrigatória"},
+                )
 
-        ext = foto.filename.rsplit(".", 1)[-1].lower() if foto.filename else "jpg"
-        if ext not in ["jpg", "jpeg", "png", "webp"]:
-            raise HTTPException(status_code=400, detail="Formato de foto inválido")
+            ext = foto.filename.rsplit(".", 1)[-1].lower() if foto.filename else "jpg"
+            if ext not in ["jpg", "jpeg", "png", "webp"]:
+                return JSONResponse(
+                    status_code=400,
+                    content={"erro": "Formato de foto inválido"},
+                )
 
-        nome_arquivo = f"{uuid.uuid4()}.{ext}"
-        pasta = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "uploads")
-        os.makedirs(pasta, exist_ok=True)
+            # salva em backend/static/uploads
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            pasta = os.path.join(base_dir, "static", "uploads")
+            os.makedirs(pasta, exist_ok=True)
 
-        caminho = os.path.join(pasta, nome_arquivo)
-        with open(caminho, "wb") as f:
-            f.write(conteudo)
+            nome_arquivo = f"{uuid.uuid4()}.{ext}"
+            caminho = os.path.join(pasta, nome_arquivo)
 
-        foto_url = f"/static/uploads/{nome_arquivo}"
+            with open(caminho, "wb") as f:
+                f.write(conteudo)
 
-        existente = await db.colaboradores.find_one({"whatsapp": whatsapp_normalizado})
-        if existente:
-            raise HTTPException(status_code=400, detail="WhatsApp já cadastrado")
+            foto_url = f"/static/uploads/{nome_arquivo}"
 
-        colaborador_id = str(uuid.uuid4())
-        qr_token = str(uuid.uuid4())
+            existente = await db.colaboradores.find_one(
+                {"whatsapp": whatsapp_normalizado}
+            )
+            if existente:
+                return JSONResponse(
+                    status_code=400,
+                    content={"erro": "WhatsApp já cadastrado"},
+                )
 
-        novo = {
-            "id": colaborador_id,
-            "nome_completo": nome_completo,
-            "comum_congregacao": comum_congregacao,
-            "whatsapp": whatsapp_normalizado,
-            "senha": hash_senha(senha),
-            "cargo_funcao_ministerio": cargo_funcao_ministerio,
-            "cargo_outro": cargo_outro,
-            "qr_token": qr_token,
-            "criado_em": datetime.utcnow().isoformat(),
-            "foto_url": foto_url,
-            "ativo": True,
-            "status": "ativo",
-        }
+            colaborador_id = str(uuid.uuid4())
+            qr_token = str(uuid.uuid4())
 
-        await db.colaboradores.insert_one(novo)
-        token = criar_token(colaborador_id)
+            novo = {
+                "id": colaborador_id,
+                "nome_completo": nome_completo,
+                "comum_congregacao": comum_congregacao,
+                "whatsapp": whatsapp_normalizado,
+                "senha": hash_senha(senha),
+                "cargo_funcao_ministerio": cargo_funcao_ministerio,
+                "cargo_outro": cargo_outro,
+                "qr_token": qr_token,
+                "criado_em": datetime.utcnow().isoformat(),
+                "foto_url": foto_url,
+                "ativo": True,
+                "status": "ativo",
+            }
 
-        return {
-            "token": token,
-            "qr_token": qr_token,
-            "colaborador": novo,
-        }
+            await db.colaboradores.insert_one(novo)
+            token = criar_token(colaborador_id)
+
+            return {
+                "ok": True,
+                "token": token,
+                "qr_token": qr_token,
+                "colaborador": novo,
+            }
+
+        except Exception as e:
+            print("ERRO CADASTRO:")
+            print(str(e))
+            print(traceback.format_exc())
+
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "erro": "Erro interno no servidor",
+                    "detalhe": str(e),
+                },
+            )
 
     @router.post("/login")
     async def login(dados: ColaboradorLogin):
-        whatsapp = normalize_phone(dados.whatsapp)
+        try:
+            whatsapp = normalize_phone(dados.whatsapp)
 
-        colaborador = await db.colaboradores.find_one(
-            {
-                "whatsapp": whatsapp,
-                "senha": hash_senha(dados.senha),
+            colaborador = await db.colaboradores.find_one(
+                {
+                    "whatsapp": whatsapp,
+                    "senha": hash_senha(dados.senha),
+                }
+            )
+
+            if not colaborador:
+                return JSONResponse(
+                    status_code=401,
+                    content={"erro": "Credenciais inválidas"},
+                )
+
+            token = criar_token(colaborador["id"])
+
+            return {
+                "ok": True,
+                "token": token,
+                "qr_token": colaborador.get("qr_token"),
+                "colaborador": colaborador,
             }
-        )
 
-        if not colaborador:
-            raise HTTPException(status_code=401, detail="Credenciais inválidas")
+        except Exception as e:
+            print("ERRO LOGIN:")
+            print(str(e))
+            print(traceback.format_exc())
 
-        token = criar_token(colaborador["id"])
-
-        return {
-            "token": token,
-            "qr_token": colaborador["qr_token"],
-            "colaborador": colaborador,
-        }
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "erro": "Erro interno no servidor",
+                    "detalhe": str(e),
+                },
+            )
 
     return router

@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
   <meta name="apple-mobile-web-app-title" content="DARPE"/>
   <title>DARPE Regional Itajaí</title>
-  <link rel="manifest" href="manifest.json"/>
+  <link rel="manifest" href="/static/manifest.json"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,700;0,800;1,400;1,500&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -646,15 +646,24 @@ async function loadCargos() {
     const r = await fetch(`${API}/colaboradores/cargos`);
     const d = await r.json();
     const sel = document.getElementById('c-cargo');
+
+    sel.innerHTML = '<option value="">Selecione...</option>';
+
     d.cargos.forEach(c => {
       const o = document.createElement('option');
       o.value = o.textContent = c;
       sel.appendChild(o);
     });
+
     sel.onchange = () => {
-      document.getElementById('outro-g').style.display = sel.value === 'Outro' ? 'block' : 'none';
+      const outroWrap = document.getElementById('wrap-cargo-outro');
+      if (outroWrap) {
+        outroWrap.style.display = sel.value === 'Outro' ? 'block' : 'none';
+      }
     };
-  } catch (e) { console.warn('Erro ao carregar cargos:', e); }
+  } catch (e) {
+    console.error('Erro ao carregar cargos:', e);
+  }
 }
 
 // ── LOGIN ───────────────────────────────────────────────────────────────────
