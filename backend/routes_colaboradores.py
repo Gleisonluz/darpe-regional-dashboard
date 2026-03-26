@@ -213,7 +213,7 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
                 },
             )
 
-    @router.post("/login")
+    
         @router.post("/login")
     async def login(dados: ColaboradorLogin):
         try:
