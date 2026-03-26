@@ -214,21 +214,57 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
             )
 
     @router.post("/login")
+        @router.post("/login")
     async def login(dados: ColaboradorLogin):
         try:
-            whatsapp = normalize_phone(dados.whatsapp)
+            whatsapp_normalizado = normalize_phone(dados.whatsapp)
+            senha_digitada = dados.senha
+            senha_hash = hash_senha(senha_digitada)
 
-            colaborador = await db.colaboradores.find_one(
-                {
-                    "whatsapp": whatsapp,
-                    "senha": hash_senha(dados.senha),
-                }
-            )
+            candidatos_whatsapp = []
+            if dados.whatsapp:
+                candidatos_whatsapp.append(dados.whatsapp.strip())
+            if whatsapp_normalizado:
+                candidatos_whatsapp.append(whatsapp_normalizado)
+                if len(whatsapp_normalizado) >= 11:
+                    candidatos_whatsapp.append(whatsapp_normalizado[-11:])
+                    candidatos_whatsapp.append(f"+55{whatsapp_normalizado[-11:]}")
+
+            # remove duplicados
+            candidatos_whatsapp = list(dict.fromkeys(candidatos_whatsapp))
+
+            colaborador = await db.colaboradores.find_one({
+                "whatsapp": {"$in": candidatos_whatsapp}
+            })
 
             if not colaborador:
                 return JSONResponse(
                     status_code=401,
-                    content={"erro": "Credenciais inválidas"},
+                    content={"erro": "WhatsApp ou senha incorretos"},
+                )
+
+            senha_salva = colaborador.get("senha", "")
+
+            if senha_salva not in [senha_digitada, senha_hash]:
+                return JSONResponse(
+                    status_code=401,
+                    content={"erro": "WhatsApp ou senha incorretos"},
+                )
+
+            # migra cadastro antigo para hash + whatsapp normalizado
+            atualizacoes = {}
+            if senha_salva == senha_digitada:
+                atualizacoes["senha"] = senha_hash
+                colaborador["senha"] = senha_hash
+
+            if colaborador.get("whatsapp") != whatsapp_normalizado:
+                atualizacoes["whatsapp"] = whatsapp_normalizado
+                colaborador["whatsapp"] = whatsapp_normalizado
+
+            if atualizacoes:
+                await db.colaboradores.update_one(
+                    {"id": colaborador["id"]},
+                    {"$set": atualizacoes}
                 )
 
             token = criar_token(colaborador["id"])
