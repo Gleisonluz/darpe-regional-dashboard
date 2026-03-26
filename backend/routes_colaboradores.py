@@ -17,6 +17,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "darpe-secret-key")
 ALGORITHM = "HS256"
 security = HTTPBearer()
 
+
 CARGOS_RESTRITOS = [
     "Secretario Regional",
     "Secretario Local",
@@ -89,6 +90,7 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
         credentials: HTTPAuthorizationCredentials = Depends(security),
     ):
         payload = decodificar_token(credentials.credentials)
+
         if payload.get("tipo") != "colaborador":
             raise HTTPException(status_code=403, detail="Acesso negado")
 
@@ -213,8 +215,7 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
                 },
             )
 
-    
-        @router.post("/login")
+    @router.post("/login")
     async def login(dados: ColaboradorLogin):
         try:
             whatsapp_normalizado = normalize_phone(dados.whatsapp)
@@ -222,20 +223,22 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
             senha_hash = hash_senha(senha_digitada)
 
             candidatos_whatsapp = []
+
             if dados.whatsapp:
                 candidatos_whatsapp.append(dados.whatsapp.strip())
+
             if whatsapp_normalizado:
                 candidatos_whatsapp.append(whatsapp_normalizado)
+
                 if len(whatsapp_normalizado) >= 11:
                     candidatos_whatsapp.append(whatsapp_normalizado[-11:])
                     candidatos_whatsapp.append(f"+55{whatsapp_normalizado[-11:]}")
 
-            # remove duplicados
             candidatos_whatsapp = list(dict.fromkeys(candidatos_whatsapp))
 
-            colaborador = await db.colaboradores.find_one({
-                "whatsapp": {"$in": candidatos_whatsapp}
-            })
+            colaborador = await db.colaboradores.find_one(
+                {"whatsapp": {"$in": candidatos_whatsapp}}
+            )
 
             if not colaborador:
                 return JSONResponse(
@@ -251,8 +254,8 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
                     content={"erro": "WhatsApp ou senha incorretos"},
                 )
 
-            # migra cadastro antigo para hash + whatsapp normalizado
             atualizacoes = {}
+
             if senha_salva == senha_digitada:
                 atualizacoes["senha"] = senha_hash
                 colaborador["senha"] = senha_hash
@@ -264,7 +267,7 @@ def create_colaboradores_router(db: AsyncIOMotorDatabase) -> APIRouter:
             if atualizacoes:
                 await db.colaboradores.update_one(
                     {"id": colaborador["id"]},
-                    {"$set": atualizacoes}
+                    {"$set": atualizacoes},
                 )
 
             token = criar_token(colaborador["id"])
