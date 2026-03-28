@@ -8,12 +8,15 @@
     :root{
       --bg:#ececec;
       --card:#f7f7f7;
+      --card-2:#ffffff;
       --text:#171717;
       --muted:#8a8a8a;
       --line:#d9d9d9;
       --danger:#d96b5f;
       --danger-bg:#fff1ef;
       --black:#0f0f10;
+      --shadow:0 8px 24px rgba(0,0,0,.05);
+      --radius:22px;
     }
 
     *{box-sizing:border-box}
@@ -32,6 +35,7 @@
       width:100%;
       max-width:540px;
       text-align:center;
+      position:relative;
     }
 
     .brand{
@@ -51,12 +55,80 @@
       line-height:1.35;
     }
 
+    .splash{
+      display:none;
+      min-height:78vh;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:24px;
+    }
+
+    .splash.active{display:flex}
+
+    .splash-card{
+      width:100%;
+      max-width:420px;
+      padding:34px 24px 38px;
+      border:1px solid #d8d8d8;
+      border-radius:30px;
+      background:var(--card);
+      box-shadow:var(--shadow);
+    }
+
+    .splash-logo{
+      font-size:60px;
+      font-weight:700;
+      line-height:1;
+      margin-bottom:18px;
+    }
+
+    .splash-title{
+      font-size:22px;
+      font-weight:700;
+      line-height:1.4;
+      margin-bottom:18px;
+    }
+
+    .splash-line{
+      width:110px;
+      height:4px;
+      border-radius:999px;
+      background:#111;
+      margin:18px auto 18px;
+      opacity:.9;
+      animation:pulseLine 1.3s ease-in-out infinite;
+    }
+
+    .splash-verse{
+      color:#737373;
+      font-style:italic;
+      line-height:1.9;
+      font-size:15px;
+    }
+
+    .splash-ref{
+      display:block;
+      margin-top:8px;
+      font-style:normal;
+      letter-spacing:3px;
+      font-weight:700;
+      color:#9b9b9b;
+    }
+
+    @keyframes pulseLine{
+      0%{transform:scaleX(.75);opacity:.45}
+      50%{transform:scaleX(1);opacity:1}
+      100%{transform:scaleX(.75);opacity:.45}
+    }
+
     .card{
       background:var(--card);
       border:1px solid #d8d8d8;
       border-radius:28px 28px 0 0;
       overflow:hidden;
       text-align:left;
+      box-shadow:var(--shadow);
     }
 
     .tabs{
@@ -105,9 +177,7 @@
 
     .alert.show{display:block}
 
-    .field{
-      margin-bottom:18px;
-    }
+    .field{margin-bottom:18px}
 
     .label{
       display:block;
@@ -147,6 +217,17 @@
       font-size:16px;
     }
 
+    .file-preview{
+      display:none;
+      width:110px;
+      height:110px;
+      object-fit:cover;
+      border-radius:18px;
+      margin-top:12px;
+      border:1px solid #d0d0d0;
+      background:#f0f0f0;
+    }
+
     .btn{
       width:100%;
       height:66px;
@@ -161,10 +242,7 @@
       margin-top:8px;
     }
 
-    .btn:disabled{
-      opacity:.7;
-      cursor:not-allowed;
-    }
+    .btn:disabled{opacity:.7;cursor:not-allowed}
 
     .links{
       display:flex;
@@ -207,6 +285,7 @@
       border:1px solid #d8d8d8;
       border-radius:24px;
       padding:22px;
+      box-shadow:var(--shadow);
     }
 
     .screen-home.active,
@@ -256,6 +335,7 @@
       justify-content:flex-end;
       cursor:pointer;
       text-align:left;
+      box-shadow:0 4px 12px rgba(0,0,0,.03);
     }
 
     .action.dark{
@@ -263,28 +343,16 @@
       color:#fff;
     }
 
-    .action h4,
-    .action p{
-      pointer-events:none;
-    }
-
-    .action h4{
-      margin:0 0 4px;
-      font-size:16px;
-    }
-
-    .action p{
-      margin:0;
-      color:inherit;
-      opacity:.72;
-      font-size:14px;
-    }
+    .action h4,.action p{pointer-events:none}
+    .action h4{margin:0 0 4px;font-size:16px}
+    .action p{margin:0;color:inherit;opacity:.72;font-size:14px}
 
     .topbar{
       display:flex;
       justify-content:space-between;
       gap:12px;
-      margin-bottom:10px;
+      margin-bottom:14px;
+      align-items:center;
     }
 
     .logout{
@@ -296,17 +364,17 @@
       font-size:15px;
     }
 
-    .hint{
-      margin-top:8px;
-      font-size:13px;
-      color:#7a7a7a;
-    }
-
     .section-content{
-      margin-top:18px;
+      margin-top:10px;
       line-height:1.8;
       font-size:17px;
       color:#303030;
+    }
+
+    .section-title{
+      font-size:32px;
+      font-weight:700;
+      margin:0 0 8px;
     }
 
     .section-card{
@@ -315,6 +383,7 @@
       border-radius:16px;
       padding:18px;
       margin-top:14px;
+      box-shadow:0 4px 12px rgba(0,0,0,.03);
     }
 
     .section-label{
@@ -332,7 +401,254 @@
       word-break:break-word;
     }
 
+    .cred-layout{
+      display:grid;
+      gap:16px;
+    }
+
+    .cred-head{
+      display:flex;
+      gap:16px;
+      align-items:center;
+      margin-bottom:8px;
+    }
+
+    .avatar-photo{
+      width:92px;
+      height:92px;
+      border-radius:18px;
+      object-fit:cover;
+      background:#ebebeb;
+      border:1px solid #d7d7d7;
+      flex:0 0 auto;
+    }
+
+    .avatar-fallback{
+      width:92px;
+      height:92px;
+      border-radius:18px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:#141414;
+      color:#fff;
+      font-size:32px;
+      font-weight:700;
+      border:1px solid #141414;
+      flex:0 0 auto;
+    }
+
+    .cred-name{
+      font-size:24px;
+      line-height:1.25;
+      font-weight:700;
+      margin-bottom:6px;
+    }
+
+    .cred-tag{
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:999px;
+      background:#efefef;
+      border:1px solid #ddd;
+      font-size:12px;
+      letter-spacing:1px;
+      text-transform:uppercase;
+      margin-bottom:8px;
+    }
+
+    .cred-sub{
+      color:#555;
+      font-size:15px;
+      line-height:1.45;
+    }
+
+    .cred-grid{
+      display:grid;
+      gap:12px;
+    }
+
+    .cred-mini{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+    }
+
+    .qr-box{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:140px;
+      background:#fff;
+      border:1px solid #ddd;
+      border-radius:18px;
+      padding:18px;
+      margin-top:4px;
+    }
+
+    .profile-hero{
+      display:flex;
+      align-items:center;
+      gap:16px;
+      margin-top:8px;
+      margin-bottom:6px;
+    }
+
+    .profile-name{
+      font-size:28px;
+      line-height:1.2;
+      font-weight:700;
+      margin-bottom:6px;
+    }
+
+    .profile-badge{
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:999px;
+      background:#efefef;
+      border:1px solid #ddd;
+      font-size:12px;
+      letter-spacing:1px;
+      text-transform:uppercase;
+    }
+
+    .pres-item{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:16px;
+      border:1px solid #ddd;
+      border-radius:16px;
+      background:#fff;
+      margin-top:12px;
+    }
+
+    .pres-icon{
+      width:40px;
+      height:40px;
+      border-radius:999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:#141414;
+      color:#fff;
+      font-weight:700;
+      flex:0 0 auto;
+    }
+
+    .pres-main{flex:1}
+    .pres-title{font-size:17px;font-weight:700}
+    .pres-sub{font-size:14px;color:#666}
+    .pres-status{font-size:13px;color:#666;text-transform:uppercase;letter-spacing:1px}
+
+    .empty{
+      padding:22px 18px;
+      border-radius:16px;
+      background:#fff;
+      border:1px solid #ddd;
+      text-align:center;
+      color:#666;
+      margin-top:14px;
+    }
+
+    .ensin-tabs{
+      display:flex;
+      gap:8px;
+      overflow:auto;
+      padding-bottom:6px;
+      margin-top:6px;
+      margin-bottom:16px;
+    }
+
+    .ensin-tab{
+      border:none;
+      padding:10px 14px;
+      border-radius:999px;
+      background:#ececec;
+      color:#333;
+      cursor:pointer;
+      white-space:nowrap;
+      font-size:13px;
+      font-weight:700;
+      letter-spacing:.5px;
+    }
+
+    .ensin-tab.active{
+      background:#111;
+      color:#fff;
+    }
+
+    .ensin-card{
+      background:#fff;
+      border:1px solid #ddd;
+      border-radius:18px;
+      padding:20px;
+      box-shadow:0 4px 12px rgba(0,0,0,.03);
+    }
+
+    .ensin-tag{
+      display:inline-block;
+      margin-bottom:14px;
+      padding:6px 10px;
+      border-radius:999px;
+      background:#efefef;
+      border:1px solid #ddd;
+      font-size:12px;
+      letter-spacing:1px;
+      text-transform:uppercase;
+    }
+
+    .ensin-question{
+      font-size:22px;
+      line-height:1.35;
+      font-weight:700;
+      margin-bottom:12px;
+    }
+
+    .ensin-answer{
+      font-size:17px;
+      color:#2e2e2e;
+      line-height:1.7;
+      min-height:110px;
+    }
+
+    .ensin-progress{
+      height:8px;
+      background:#ececec;
+      border-radius:999px;
+      overflow:hidden;
+      margin:18px 0 16px;
+    }
+
+    .ensin-bar{
+      height:100%;
+      width:0%;
+      background:#111;
+      transition:width .25s ease;
+    }
+
+    .ensin-footer{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .nav-btn{
+      border:none;
+      border-radius:12px;
+      background:#111;
+      color:#fff;
+      padding:11px 14px;
+      cursor:pointer;
+      font-weight:700;
+    }
+
+    .nav-btn:disabled{opacity:.35;cursor:not-allowed}
+    .ensin-counter{font-size:14px;color:#666}
+
     @media (max-width:560px){
+      .wrap{padding:24px 8px}
       .brand .ccb{font-size:52px}
       .brand .title{font-size:18px}
       .panel{padding:20px 20px 26px}
@@ -340,18 +656,34 @@
       .input,.select{height:58px;font-size:17px}
       .btn{height:62px}
       .name{font-size:34px}
+      .section-title{font-size:28px}
+      .home-actions{grid-template-columns:1fr 1fr}
+      .cred-head,.profile-hero{align-items:flex-start}
+      .cred-name{font-size:21px}
+      .profile-name{font-size:24px}
+      .ensin-question{font-size:19px}
+      .ensin-answer{font-size:16px}
     }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="container">
-      <div class="brand">
-        <div class="ccb">CCB</div>
-        <div class="title">DARPE — REGIONAL ITAJAÍ -SC</div>
+
+      <div id="screen-splash" class="splash active">
+        <div class="splash-card">
+          <div class="splash-logo">CCB</div>
+          <div class="splash-title">DARPE — REGIONAL<br>ITAJAÍ -SC</div>
+          <div class="splash-line"></div>
+          <div class="splash-verse">
+            “E disse-lhes: Ide por todo o mundo,<br>
+            pregai o evangelho a toda criatura.”
+            <span class="splash-ref">MARCOS 16:15</span>
+          </div>
+        </div>
       </div>
 
-      <div id="screen-auth" class="card">
+      <div id="screen-auth" class="card" style="display:none;">
         <div class="tabs">
           <button id="tab-login" class="tab active" type="button">ENTRAR</button>
           <button id="tab-cadastro" class="tab" type="button">CADASTRAR</button>
@@ -403,15 +735,11 @@
             </select>
           </div>
 
-          <div id="outro-g" class="field" style="display:none;">
-            <label class="label" for="c-cargo-outro">Outro cargo</label>
-            <input id="c-cargo-outro" class="input" type="text" />
-          </div>
-
           <div class="field">
             <label class="label" for="c-foto">Foto</label>
             <input id="c-foto" class="file" type="file" accept="image/*" />
-            <div class="hint">Envie uma foto para o cadastro.</div>
+            <img id="c-foto-preview" class="file-preview" alt="Prévia da foto" />
+            <div class="section-label" style="margin-top:12px;">Envie uma foto para o cadastro.</div>
           </div>
 
           <div class="field">
@@ -470,30 +798,99 @@
           <button class="logout" type="button" onclick="logout()">Sair</button>
         </div>
 
-        <div id="section-title" class="name" style="font-size:32px;">Seção</div>
+        <div id="section-title" class="section-title">Seção</div>
         <div id="section-content" class="section-content"></div>
       </div>
     </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>
     const API = "/api";
+    const FALLBACK_CARGOS = [
+      "COLABORADOR",
+      "ATENDENTE",
+      "SECRETÁRIO(A) LOCAL",
+      "SECRETÁRIO(A) REGIONAL",
+      "ANCIÃO COORDENADOR"
+    ];
+
+    const ensinamentos = [
+      {
+        categoria: "Irmãos",
+        pergunta: "O colaborador pode agir fora da orientação recebida?",
+        resposta: "Não. Deve sempre agir em obediência às orientações recebidas."
+      },
+      {
+        categoria: "Irmãs e Trajes",
+        pergunta: "Qual é a orientação para as irmãs do grupo sobre o modelo de véu a ser usado nas reuniões?",
+        resposta: "Devem usar véus simples, sem rendas largas que chamem a atenção."
+      },
+      {
+        categoria: "Irmãs e Trajes",
+        pergunta: "Pode haver participação de irmãs em instituições masculinas?",
+        resposta: "Não deve haver participação de irmãs nessas instituições em hipótese alguma."
+      },
+      {
+        categoria: "Música",
+        pergunta: "Qual deve ser o comportamento dos músicos em relação aos seus instrumentos perante os ouvintes?",
+        resposta: "Os músicos nunca devem oferecer seus instrumentos aos ouvintes para evitar constrangimentos."
+      },
+      {
+        categoria: "Base Legal",
+        pergunta: "Qual artigo da Constituição Federal de 1988 assegura a assistência religiosa em entidades de internação?",
+        resposta: "Artigo 5º, inciso VII."
+      },
+      {
+        categoria: "Base Legal",
+        pergunta: "Segundo a Lei de Execução Penal, a participação do preso em atividades religiosas é obrigatória?",
+        resposta: "Não. Nenhum preso ou internado poderá ser obrigado a participar de atividade religiosa."
+      },
+      {
+        categoria: "Base Legal",
+        pergunta: "Qual lei brasileira dispõe sobre a prestação de assistência religiosa em hospitais públicos e privados?",
+        resposta: "Lei nº 9.982, de 14 de julho de 2000."
+      },
+      {
+        categoria: "Situações Especiais",
+        pergunta: "O que deve ser feito se um colaborador for aposentado por invalidez pelo INSS?",
+        resposta: "Ele não deve exercer atividade voluntária sob o risco de perda do seu benefício."
+      }
+    ];
+
     let user = {};
     let token = "";
+    let qrDone = false;
+    let categoriaAtual = "Todas";
+    let listaFiltrada = [...ensinamentos];
+    let indiceAtual = 0;
+    let splashLiberado = false;
 
     function showAlert(id, msg) {
       const el = document.getElementById(id);
+      if (!el) return;
       el.textContent = msg || "";
       el.classList.add("show");
     }
 
     function hideAlert(id) {
       const el = document.getElementById(id);
+      if (!el) return;
       el.textContent = "";
       el.classList.remove("show");
     }
 
+    function hideSplash() {
+      const splash = document.getElementById("screen-splash");
+      if (splash) {
+        splash.classList.remove("active");
+        splash.style.display = "none";
+      }
+      splashLiberado = true;
+    }
+
     function showAuth(tab = "login") {
+      hideSplash();
       document.getElementById("screen-auth").style.display = "block";
       document.getElementById("screen-home").classList.remove("active");
       document.getElementById("screen-section").classList.remove("active");
@@ -518,6 +915,7 @@
     }
 
     function showHome() {
+      hideSplash();
       document.getElementById("screen-auth").style.display = "none";
       document.getElementById("screen-section").classList.remove("active");
       document.getElementById("screen-section").style.display = "none";
@@ -525,10 +923,51 @@
       fill();
     }
 
+    function escapeHtml(v) {
+      return String(v ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function getNome() {
+      return user?.nome_completo || user?.nome || "Irmão";
+    }
+
+    function getWhatsapp() {
+      return user?.whatsapp || user?.WhatsApp || "—";
+    }
+
+    function getCargo() {
+      return user?.cargo_funcao_ministerio || user?.cargo || user?.funcao || "—";
+    }
+
+    function getComum() {
+      return user?.comum_congregacao || user?.comum || user?.congregacao || "—";
+    }
+
+    function getFoto() {
+      return user?.foto_url || user?.foto || user?.imagem || "";
+    }
+
+    function getQrValue() {
+      return user?.qr_token || user?.id || user?._id || user?.whatsapp || "DARPE";
+    }
+
+    function renderAvatarHtml(prefix, photo, nome) {
+      const inicial = (nome || "I").trim().charAt(0).toUpperCase() || "I";
+      if (photo) {
+        return `<img id="${prefix}-foto" class="avatar-photo" src="${escapeHtml(photo)}" alt="Foto">`;
+      }
+      return `<div class="avatar-fallback">${escapeHtml(inicial)}</div>`;
+    }
+
     function fill() {
-      const nome = user?.nome_completo || user?.nome || "Irmão";
-      const primeiroNome = nome.split(" ")[0];
-      const whatsapp = user?.whatsapp || user?.WhatsApp || "—";
+      const nome = getNome();
+      const primeiroNome = nome.split(" ")[0] || nome;
+      const whatsapp = getWhatsapp();
 
       document.getElementById("home-name").textContent = primeiroNome;
       document.getElementById("home-wpp").textContent = whatsapp;
@@ -541,32 +980,45 @@
       const title = document.getElementById("section-title");
       const content = document.getElementById("section-content");
 
+      const nome = getNome();
+      const whatsapp = getWhatsapp();
+      const cargo = getCargo();
+      const comum = getComum();
+      const foto = getFoto();
+      const userId = user?.id || user?._id || "—";
+
       let html = "";
 
       if (section === "credencial") {
         title.textContent = "Credencial";
         html = `
-          <div class="section-card">
-            <div class="section-label">Nome</div>
-            <div class="section-value">${user?.nome_completo || user?.nome || "—"}</div>
-          </div>
-          <div class="section-card">
-            <div class="section-label">WhatsApp</div>
-            <div class="section-value">${user?.whatsapp || user?.WhatsApp || "—"}</div>
-          </div>
-          <div class="section-card">
-            <div class="section-label">ID</div>
-            <div class="section-value">${user?.id || "—"}</div>
-          </div>
-        `;
-      }
+          <div class="cred-layout">
+            <div class="section-card">
+              <div class="cred-head">
+                ${renderAvatarHtml("cred", foto, nome)}
+                <div>
+                  <div class="cred-name">${escapeHtml(nome)}</div>
+                  <div class="cred-tag">${escapeHtml(cargo)}</div>
+                  <div class="cred-sub">${escapeHtml(comum)}</div>
+                </div>
+              </div>
+            </div>
 
-      if (section === "presencas") {
-        title.textContent = "Presenças";
-        html = `
-          <div class="section-card">
-            <div class="section-label">Histórico</div>
-            <div class="section-value">Área de presenças pronta para integração.</div>
+            <div class="cred-mini">
+              <div class="section-card">
+                <div class="section-label">WhatsApp</div>
+                <div class="section-value">${escapeHtml(whatsapp)}</div>
+              </div>
+              <div class="section-card">
+                <div class="section-label">ID</div>
+                <div class="section-value">${escapeHtml(String(userId))}</div>
+              </div>
+            </div>
+
+            <div class="section-card">
+              <div class="section-label">QR Code</div>
+              <div id="cred-qr" class="qr-box"></div>
+            </div>
           </div>
         `;
       }
@@ -575,22 +1027,63 @@
         title.textContent = "Perfil";
         html = `
           <div class="section-card">
-            <div class="section-label">Nome</div>
-            <div class="section-value">${user?.nome_completo || user?.nome || "—"}</div>
+            <div class="profile-hero">
+              ${renderAvatarHtml("perfil", foto, nome)}
+              <div>
+                <div class="profile-name">${escapeHtml(nome)}</div>
+                <div class="profile-badge">${escapeHtml(cargo)}</div>
+              </div>
+            </div>
           </div>
+
+          <div class="section-card">
+            <div class="section-label">Comum / Congregação</div>
+            <div class="section-value">${escapeHtml(comum)}</div>
+          </div>
+
           <div class="section-card">
             <div class="section-label">WhatsApp</div>
-            <div class="section-value">${user?.whatsapp || user?.WhatsApp || "—"}</div>
+            <div class="section-value">${escapeHtml(whatsapp)}</div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-label">ID</div>
+            <div class="section-value">${escapeHtml(String(userId))}</div>
           </div>
         `;
+      }
+
+      if (section === "presencas") {
+        title.textContent = "Presenças";
+        html = `<div id="pres-lista"></div>`;
       }
 
       if (section === "ensinamentos") {
         title.textContent = "Ensinamentos";
         html = `
-          <div class="section-card">
-            <div class="section-label">Conteúdo</div>
-            <div class="section-value">Área de ensinamentos pronta para integração.</div>
+          <div class="ensin-tabs">
+            <button class="ensin-tab active" type="button" onclick="filtrarCategoria('Todas', this)">Todas</button>
+            <button class="ensin-tab" type="button" onclick="filtrarCategoria('Irmãos', this)">Irmãos</button>
+            <button class="ensin-tab" type="button" onclick="filtrarCategoria('Irmãs e Trajes', this)">Irmãs e Trajes</button>
+            <button class="ensin-tab" type="button" onclick="filtrarCategoria('Música', this)">Música</button>
+            <button class="ensin-tab" type="button" onclick="filtrarCategoria('Base Legal', this)">Base Legal</button>
+            <button class="ensin-tab" type="button" onclick="filtrarCategoria('Situações Especiais', this)">Situações Especiais</button>
+          </div>
+
+          <div class="ensin-card">
+            <div id="ensin-tag" class="ensin-tag">Todas</div>
+            <div id="ensin-question" class="ensin-question">—</div>
+            <div id="ensin-answer" class="ensin-answer">—</div>
+
+            <div class="ensin-progress">
+              <div id="ensin-bar" class="ensin-bar"></div>
+            </div>
+
+            <div class="ensin-footer">
+              <button id="btn-anterior" class="nav-btn" type="button" onclick="anteriorEnsinamento()">Anterior</button>
+              <div id="ensin-counter" class="ensin-counter">0 de 0</div>
+              <button id="btn-proximo" class="nav-btn" type="button" onclick="proximoEnsinamento()">Próximo</button>
+            </div>
           </div>
         `;
       }
@@ -598,6 +1091,25 @@
       content.innerHTML = html;
       screen.style.display = "block";
       screen.classList.add("active");
+
+      if (section === "credencial") {
+        qrDone = false;
+        setTimeout(genQR, 60);
+      }
+
+      if (section === "presencas") {
+        loadPres();
+      }
+
+      if (section === "ensinamentos") {
+        categoriaAtual = "Todas";
+        listaFiltrada = [...ensinamentos];
+        indiceAtual = 0;
+        setTimeout(() => {
+          const activeTab = document.querySelector(".ensin-tab.active") || document.querySelector(".ensin-tab");
+          filtrarCategoria("Todas", activeTab);
+        }, 10);
+      }
     }
 
     function backHome() {
@@ -606,27 +1118,228 @@
       showHome();
     }
 
+    function genQR() {
+      const el = document.getElementById("cred-qr");
+      if (!el || qrDone) return;
+
+      const valor = String(getQrValue());
+      el.innerHTML = "";
+
+      try {
+        if (typeof QRCode === "undefined") {
+          el.innerHTML = `<div class="empty">Biblioteca do QR Code não carregou.</div>`;
+          return;
+        }
+
+        new QRCode(el, {
+          text: valor,
+          width: 150,
+          height: 150,
+          colorDark: "#111111",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+
+        qrDone = true;
+      } catch (e) {
+        console.error("Erro ao gerar QR:", e);
+        el.innerHTML = `<div class="empty">Não foi possível gerar o QR Code.</div>`;
+      }
+    }
+
     async function loadCargos() {
+      const sel = document.getElementById("c-cargo");
+      if (!sel) return;
+
       try {
         const r = await fetch(`${API}/colaboradores/cargos`);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+
         const d = await r.json();
-        const sel = document.getElementById("c-cargo");
+        const cargos = Array.isArray(d.cargos) && d.cargos.length ? d.cargos : FALLBACK_CARGOS;
 
         sel.innerHTML = '<option value="">Selecione...</option>';
-
-        (d.cargos || []).forEach(c => {
+        cargos.forEach(c => {
           const o = document.createElement("option");
           o.value = c;
           o.textContent = c;
           sel.appendChild(o);
         });
-
-        sel.onchange = () => {
-          const outroWrap = document.getElementById("outro-g");
-          outroWrap.style.display = sel.value === "Outro" ? "block" : "none";
-        };
       } catch (e) {
         console.error("Erro ao carregar cargos:", e);
+        sel.innerHTML = '<option value="">Selecione...</option>';
+        FALLBACK_CARGOS.forEach(c => {
+          const o = document.createElement("option");
+          o.value = c;
+          o.textContent = c;
+          sel.appendChild(o);
+        });
+      }
+    }
+
+    function configurarPreviewFoto() {
+      const input = document.getElementById("c-foto");
+      const preview = document.getElementById("c-foto-preview");
+      if (!input || !preview) return;
+
+      input.addEventListener("change", () => {
+        const file = input.files && input.files[0];
+        if (!file) {
+          preview.src = "";
+          preview.style.display = "none";
+          return;
+        }
+
+        if (!file.type.startsWith("image/")) {
+          preview.src = "";
+          preview.style.display = "none";
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          preview.src = e.target.result;
+          preview.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function formatDateBR(v) {
+      if (!v) return "—";
+      try {
+        return new Date(v).toLocaleDateString("pt-BR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric"
+        });
+      } catch {
+        return "—";
+      }
+    }
+
+    async function loadPres() {
+      const el = document.getElementById("pres-lista");
+      if (!el) return;
+
+      if (!user?.id && !user?._id) {
+        el.innerHTML = '<div class="empty">Usuário sem identificação para buscar presenças.</div>';
+        return;
+      }
+
+      el.innerHTML = '<div class="empty">Carregando presenças...</div>';
+
+      const uid = user.id || user._id;
+      const headers = token ? { "Authorization": `Bearer ${token}` } : {};
+
+      const rotas = [
+        `${API}/presencas-colaboradores/colaborador/${uid}`,
+        `${API}/presencas/colaborador/${uid}`,
+        `${API}/presencas/minhas`,
+        `${API}/attendance-results/minhas`,
+        `${API}/attendance-results`
+      ];
+
+      let dados = null;
+
+      for (const rota of rotas) {
+        try {
+          const r = await fetch(rota, { headers });
+          if (r.status === 404) continue;
+          if (!r.ok) continue;
+          dados = await r.json();
+          break;
+        } catch (e) {
+          console.error("Falha rota presença:", rota, e);
+        }
+      }
+
+      let lista = [];
+      if (Array.isArray(dados)) lista = dados;
+      else if (Array.isArray(dados?.presencas)) lista = dados.presencas;
+      else if (Array.isArray(dados?.data)) lista = dados.data;
+      else if (Array.isArray(dados?.resultados)) lista = dados.resultados;
+
+      if (!lista.length) {
+        el.innerHTML = '<div class="empty">Nenhuma presença registrada ainda.</div>';
+        return;
+      }
+
+      el.innerHTML = lista.map((item, idx) => {
+        const titulo = item?.local || item?.nome_local || item?.reuniao || item?.titulo || "Reunião DARPE";
+        const data = formatDateBR(item?.data_checkin || item?.criado_em || item?.data || item?.timestamp);
+        const status = item?.status || "confirmado";
+        return `
+          <div class="pres-item">
+            <div class="pres-icon">✓</div>
+            <div class="pres-main">
+              <div class="pres-title">${escapeHtml(titulo)}</div>
+              <div class="pres-sub">${escapeHtml(data)}</div>
+            </div>
+            <div class="pres-status">${escapeHtml(String(status))}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function atualizarTabs(tabClicada) {
+      document.querySelectorAll(".ensin-tab").forEach(tab => tab.classList.remove("active"));
+      if (tabClicada) tabClicada.classList.add("active");
+    }
+
+    function filtrarCategoria(categoria, elemento = null) {
+      categoriaAtual = categoria;
+      listaFiltrada = categoria === "Todas"
+        ? [...ensinamentos]
+        : ensinamentos.filter(item => item.categoria === categoria);
+      indiceAtual = 0;
+      atualizarTabs(elemento);
+      renderEnsinamento();
+    }
+
+    function renderEnsinamento() {
+      const perguntaEl = document.getElementById("ensin-question");
+      const respostaEl = document.getElementById("ensin-answer");
+      const contadorEl = document.getElementById("ensin-counter");
+      const tagEl = document.getElementById("ensin-tag");
+      const barraEl = document.getElementById("ensin-bar");
+      const btnAnterior = document.getElementById("btn-anterior");
+      const btnProximo = document.getElementById("btn-proximo");
+
+      if (!perguntaEl || !respostaEl || !contadorEl || !tagEl || !barraEl || !btnAnterior || !btnProximo) return;
+
+      if (!listaFiltrada.length) {
+        perguntaEl.innerText = "Nenhum ensinamento encontrado.";
+        respostaEl.innerText = "Não há conteúdo disponível nesta categoria.";
+        contadorEl.innerText = "0 de 0";
+        tagEl.innerText = categoriaAtual;
+        barraEl.style.width = "0%";
+        btnAnterior.disabled = true;
+        btnProximo.disabled = true;
+        return;
+      }
+
+      const item = listaFiltrada[indiceAtual];
+      perguntaEl.innerText = item.pergunta;
+      respostaEl.innerText = item.resposta;
+      contadorEl.innerText = `${indiceAtual + 1} de ${listaFiltrada.length}`;
+      tagEl.innerText = item.categoria;
+      barraEl.style.width = `${((indiceAtual + 1) / listaFiltrada.length) * 100}%`;
+      btnAnterior.disabled = indiceAtual === 0;
+      btnProximo.disabled = indiceAtual === listaFiltrada.length - 1;
+    }
+
+    function proximoEnsinamento() {
+      if (indiceAtual < listaFiltrada.length - 1) {
+        indiceAtual++;
+        renderEnsinamento();
+      }
+    }
+
+    function anteriorEnsinamento() {
+      if (indiceAtual > 0) {
+        indiceAtual--;
+        renderEnsinamento();
       }
     }
 
@@ -637,7 +1350,6 @@
       const comum = document.getElementById("c-comum").value.trim();
       const whatsapp = document.getElementById("c-wpp").value.trim();
       const cargo = document.getElementById("c-cargo").value;
-      const cargoOutro = document.getElementById("c-cargo-outro").value.trim();
       const senha = document.getElementById("c-pw").value.trim();
       const foto = document.getElementById("c-foto").files[0];
 
@@ -662,9 +1374,6 @@
         fd.append("whatsapp", whatsapp);
         fd.append("senha", senha);
         fd.append("cargo_funcao_ministerio", cargo);
-        if (cargo === "Outro" && cargoOutro) {
-          fd.append("cargo_outro", cargoOutro);
-        }
         fd.append("foto", foto);
 
         const r = await fetch(`${API}/colaboradores/cadastro`, {
@@ -673,10 +1382,7 @@
         });
 
         const d = await r.json();
-
-        if (!r.ok) {
-          throw new Error(d.erro || d.detail || "Erro ao cadastrar");
-        }
+        if (!r.ok) throw new Error(d.erro || d.detail || "Erro ao cadastrar");
 
         user = d.colaborador || {};
         token = d.token || "";
@@ -716,20 +1422,14 @@
         });
 
         const d = await r.json();
-
-        if (!r.ok) {
-          throw new Error(d.erro || d.detail || "Erro ao entrar");
-        }
+        if (!r.ok) throw new Error(d.erro || d.detail || "Erro ao entrar");
 
         user = d.colaborador || {};
         token = d.token || "";
 
         localStorage.setItem("darpe_user", JSON.stringify(user));
-        if (token) {
-          localStorage.setItem("darpe_token", token);
-        } else {
-          localStorage.removeItem("darpe_token");
-        }
+        if (token) localStorage.setItem("darpe_token", token);
+        else localStorage.removeItem("darpe_token");
 
         showHome();
       } catch (e) {
@@ -755,24 +1455,24 @@
     document.getElementById("btn-cad").addEventListener("click", doCadastro);
     document.getElementById("btn-logout").addEventListener("click", logout);
 
-    window.addEventListener("load", () => {
+    window.addEventListener("load", async () => {
       try {
+        configurarPreviewFoto();
+        await loadCargos();
+
         const u = localStorage.getItem("darpe_user");
         const t = localStorage.getItem("darpe_token");
 
         if (u) user = JSON.parse(u);
         if (t) token = t || "";
 
-        loadCargos();
-
-        if (user && Object.keys(user).length) {
-          showHome();
-        } else {
-          showAuth("login");
-        }
+        setTimeout(() => {
+          if (user && Object.keys(user).length) showHome();
+          else showAuth("login");
+        }, 1400);
       } catch (e) {
         console.error(e);
-        showAuth("login");
+        setTimeout(() => showAuth("login"), 1400);
       }
     });
   </script>
