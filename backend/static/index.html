@@ -1126,52 +1126,6 @@
         loadPres();
       }
 
-if (section === "ensinamentos") {
-  title.textContent = "Ensinamentos";
-
-  html = `
-    <div class="ensin-tabs">
-      <button class="ensin-tab active" onclick="filtrarCategoria('Todas', this)">Todas</button>
-      <button class="ensin-tab" onclick="filtrarCategoria('Institucional', this)">Institucional</button>
-      <button class="ensin-tab" onclick="filtrarCategoria('Conduta', this)">Conduta</button>
-      <button class="ensin-tab" onclick="filtrarCategoria('Atendimento', this)">Atendimento</button>
-      <button class="ensin-tab" onclick="filtrarCategoria('Credenciamento', this)">Credenciamento</button>
-      <button class="ensin-tab" onclick="filtrarCategoria('Segurança', this)">Segurança</button>
-      <button class="ensin-tab" onclick="filtrarCategoria('Batismo', this)">Batismo</button>
-      <button class="ensin-tab" onclick="filtrarCategoria('Setor 1', this)">Setor 1</button>
-      <button class="ensin-tab" onclick="filtrarCategoria('Setor 2', this)">Setor 2</button>
-      <button class="ensin-tab" onclick="filtrarCategoria('Setor 3', this)">Setor 3</button>
-      <button class="ensin-tab" onclick="filtrarCategoria('Setor 4', this)">Setor 4</button>
-      <button class="ensin-tab" onclick="filtrarCategoria('Irmãs', this)">Irmãs</button>
-      <button class="ensin-tab" onclick="filtrarCategoria('Música', this)">Música</button>
-      <button class="ensin-tab" onclick="filtrarCategoria('Base Legal', this)">Base Legal</button>
-      <button class="ensin-tab" onclick="filtrarCategoria('Especiais', this)">Especiais</button>
-    </div>
-
-    <div class="ensin-card">
-      <div id="ensin-tag" class="ensin-tag">Todas</div>
-      <div id="ensin-question" class="ensin-question">—</div>
-      <div id="ensin-answer" class="ensin-answer">—</div>
-
-      <div class="ensin-progress">
-        <div id="ensin-bar" class="ensin-bar"></div>
-      </div>
-
-      <div class="ensin-footer">
-        <button id="btn-anterior" class="nav-btn" onclick="anteriorEnsinamento()">Anterior</button>
-        <div id="ensin-counter" class="ensin-counter">0 de 0</div>
-        <button id="btn-proximo" class="nav-btn" onclick="proximoEnsinamento()">Próximo</button>
-      </div>
-    </div>
-  `;
-
-  content.innerHTML = html;
-
-  setTimeout(() => {
-    const tab = document.querySelector(".ensin-tab.active") || document.querySelector(".ensin-tab");
-    if (tab) filtrarCategoria("Todas", tab);
-  }, 50);
-}
     function backHome() {
       document.getElementById("screen-section").style.display = "none";
       document.getElementById("screen-section").classList.remove("active");
