@@ -552,101 +552,126 @@
     }
 
     .ensin-tabs{
-      display:flex;
-      gap:8px;
-      overflow:auto;
-      padding-bottom:6px;
-      margin-top:6px;
-      margin-bottom:16px;
-    }
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding:2px 2px 10px;
+  margin-bottom:14px;
+  scrollbar-width:none;
+}
+.ensin-tabs::-webkit-scrollbar{display:none}
 
-    .ensin-tab{
-      border:none;
-      padding:10px 14px;
-      border-radius:999px;
-      background:#ececec;
-      color:#333;
-      cursor:pointer;
-      white-space:nowrap;
-      font-size:13px;
-      font-weight:700;
-      letter-spacing:.5px;
-    }
+.ensin-tab{
+  border:1px solid #d8d8d8;
+  border-radius:999px;
+  padding:8px 14px;
+  background:#f3f3f3;
+  color:#555;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  white-space:nowrap;
+  transition:.2s ease;
+}
 
-    .ensin-tab.active{
-      background:#111;
-      color:#fff;
-    }
+.ensin-tab.active{
+  background:#111;
+  color:#fff;
+  border-color:#111;
+}
 
-    .ensin-card{
-      background:#fff;
-      border:1px solid #ddd;
-      border-radius:18px;
-      padding:20px;
-      box-shadow:0 4px 12px rgba(0,0,0,.03);
-    }
+.ensin-card{
+  background:#fff;
+  border:1px solid #d9d9d9;
+  border-radius:24px;
+  padding:26px 24px 22px;
+  box-shadow:0 6px 18px rgba(0,0,0,.05);
+}
 
-    .ensin-tag{
-      display:inline-block;
-      margin-bottom:14px;
-      padding:6px 10px;
-      border-radius:999px;
-      background:#efefef;
-      border:1px solid #ddd;
-      font-size:12px;
-      letter-spacing:1px;
-      text-transform:uppercase;
-    }
+.ensin-tag{
+  display:inline-block;
+  padding:10px 18px;
+  border-radius:999px;
+  background:#f1f1f1;
+  border:1px solid #dedede;
+  color:#555;
+  font-size:14px;
+  margin-bottom:18px;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
 
-    .ensin-question{
-      font-size:22px;
-      line-height:1.35;
-      font-weight:700;
-      margin-bottom:12px;
-    }
+.ensin-question{
+  font-size:22px;
+  font-weight:700;
+  line-height:1.28;
+  margin-bottom:18px;
+  color:#333;
+}
 
-    .ensin-answer{
-      font-size:17px;
-      color:#2e2e2e;
-      line-height:1.7;
-      min-height:110px;
-    }
+.ensin-answer{
+  font-size:17px;
+  line-height:1.7;
+  color:#4a4a4a;
+  min-height:170px;
+}
 
-    .ensin-progress{
-      height:8px;
-      background:#ececec;
-      border-radius:999px;
-      overflow:hidden;
-      margin:18px 0 16px;
-    }
+.ensin-progress{
+  margin-top:18px;
+  height:10px;
+  border-radius:999px;
+  background:#ececec;
+  overflow:hidden;
+}
 
-    .ensin-bar{
-      height:100%;
-      width:0%;
-      background:#111;
-      transition:width .25s ease;
-    }
+.ensin-bar{
+  width:0%;
+  height:100%;
+  background:#111;
+  border-radius:999px;
+}
 
-    .ensin-footer{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-    }
+.ensin-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  margin-top:22px;
+}
 
-    .nav-btn{
-      border:none;
-      border-radius:12px;
-      background:#111;
-      color:#fff;
-      padding:11px 14px;
-      cursor:pointer;
-      font-weight:700;
-    }
+.ensin-counter{
+  font-size:15px;
+  color:#555;
+  min-width:80px;
+  text-align:center;
+}
 
-    .nav-btn:disabled{opacity:.35;cursor:not-allowed}
-    .ensin-counter{font-size:14px;color:#666}
+.nav-btn{
+  min-width:102px;
+  height:48px;
+  border:none;
+  border-radius:16px;
+  padding:0 18px;
+  font-size:15px;
+  font-weight:700;
+  cursor:pointer;
+  transition:.2s ease;
+}
 
+#btn-anterior{
+  background:#d9d9d9;
+  color:#fff;
+}
+
+#btn-proximo{
+  background:#111;
+  color:#fff;
+}
+
+.nav-btn:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
     @media (max-width:560px){
       .wrap{padding:24px 8px}
       .brand .ccb{font-size:52px}
@@ -1101,17 +1126,52 @@
         loadPres();
       }
 
-      if (section === "ensinamentos") {
-        categoriaAtual = "Todas";
-        listaFiltrada = [...ensinamentos];
-        indiceAtual = 0;
-        setTimeout(() => {
-          const activeTab = document.querySelector(".ensin-tab.active") || document.querySelector(".ensin-tab");
-          filtrarCategoria("Todas", activeTab);
-        }, 10);
-      }
-    }
+if (section === "ensinamentos") {
+  title.textContent = "Ensinamentos";
 
+  html = `
+    <div class="ensin-tabs">
+      <button class="ensin-tab active" onclick="filtrarCategoria('Todas', this)">Todas</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Institucional', this)">Institucional</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Conduta', this)">Conduta</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Atendimento', this)">Atendimento</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Credenciamento', this)">Credenciamento</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Segurança', this)">Segurança</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Batismo', this)">Batismo</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Setor 1', this)">Setor 1</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Setor 2', this)">Setor 2</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Setor 3', this)">Setor 3</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Setor 4', this)">Setor 4</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Irmãs', this)">Irmãs</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Música', this)">Música</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Base Legal', this)">Base Legal</button>
+      <button class="ensin-tab" onclick="filtrarCategoria('Especiais', this)">Especiais</button>
+    </div>
+
+    <div class="ensin-card">
+      <div id="ensin-tag" class="ensin-tag">Todas</div>
+      <div id="ensin-question" class="ensin-question">—</div>
+      <div id="ensin-answer" class="ensin-answer">—</div>
+
+      <div class="ensin-progress">
+        <div id="ensin-bar" class="ensin-bar"></div>
+      </div>
+
+      <div class="ensin-footer">
+        <button id="btn-anterior" class="nav-btn" onclick="anteriorEnsinamento()">Anterior</button>
+        <div id="ensin-counter" class="ensin-counter">0 de 0</div>
+        <button id="btn-proximo" class="nav-btn" onclick="proximoEnsinamento()">Próximo</button>
+      </div>
+    </div>
+  `;
+
+  content.innerHTML = html;
+
+  setTimeout(() => {
+    const tab = document.querySelector(".ensin-tab.active") || document.querySelector(".ensin-tab");
+    if (tab) filtrarCategoria("Todas", tab);
+  }, 50);
+}
     function backHome() {
       document.getElementById("screen-section").style.display = "none";
       document.getElementById("screen-section").classList.remove("active");
