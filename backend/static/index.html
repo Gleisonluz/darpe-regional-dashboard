@@ -998,7 +998,139 @@
       document.getElementById("home-wpp").textContent = whatsapp;
     }
 
-    
+    function openSection(section) {
+  document.getElementById("screen-home").classList.remove("active");
+
+  const screen = document.getElementById("screen-section");
+  const title = document.getElementById("section-title");
+  const content = document.getElementById("section-content");
+
+  const nome = getNome();
+  const whatsapp = getWhatsapp();
+  const cargo = getCargo();
+  const comum = getComum();
+  const foto = getFoto();
+  const userId = user?.id || user?._id || "—";
+
+  let html = "";
+
+  if (section === "credencial") {
+    title.textContent = "Credencial";
+    html = `
+      <div class="cred-layout">
+        <div class="section-card">
+          <div class="cred-head">
+            ${renderAvatarHtml("cred", foto, nome)}
+            <div>
+              <div class="cred-name">${escapeHtml(nome)}</div>
+              <div class="cred-tag">${escapeHtml(cargo)}</div>
+              <div class="cred-sub">${escapeHtml(comum)}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cred-mini">
+          <div class="section-card">
+            <div class="section-label">WhatsApp</div>
+            <div class="section-value">${escapeHtml(whatsapp)}</div>
+          </div>
+          <div class="section-card">
+            <div class="section-label">ID</div>
+            <div class="section-value">${escapeHtml(String(userId))}</div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-label">QR Code</div>
+          <div id="cred-qr" class="qr-box"></div>
+        </div>
+      </div>
+    `;
+  } else if (section === "perfil") {
+    title.textContent = "Perfil";
+    html = `
+      <div class="section-card">
+        <div class="profile-hero">
+          ${renderAvatarHtml("perfil", foto, nome)}
+          <div>
+            <div class="profile-name">${escapeHtml(nome)}</div>
+            <div class="profile-badge">${escapeHtml(cargo)}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-label">Comum / Congregação</div>
+        <div class="section-value">${escapeHtml(comum)}</div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-label">WhatsApp</div>
+        <div class="section-value">${escapeHtml(whatsapp)}</div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-label">ID</div>
+        <div class="section-value">${escapeHtml(String(userId))}</div>
+      </div>
+    `;
+  } else if (section === "presencas") {
+    title.textContent = "Presenças";
+    html = `<div id="pres-lista"></div>`;
+  } else if (section === "ensinamentos") {
+    title.textContent = "Ensinamentos";
+    html = `
+      <div class="ensin-tabs">
+        <button class="ensin-tab active" type="button" onclick="filtrarCategoria('Todas', this)">Todas</button>
+        <button class="ensin-tab" type="button" onclick="filtrarCategoria('Irmãos', this)">Irmãos</button>
+        <button class="ensin-tab" type="button" onclick="filtrarCategoria('Irmãs e Trajes', this)">Irmãs e Trajes</button>
+        <button class="ensin-tab" type="button" onclick="filtrarCategoria('Música', this)">Música</button>
+        <button class="ensin-tab" type="button" onclick="filtrarCategoria('Base Legal', this)">Base Legal</button>
+        <button class="ensin-tab" type="button" onclick="filtrarCategoria('Situações Especiais', this)">Situações Especiais</button>
+      </div>
+
+      <div class="ensin-card">
+        <div id="ensin-tag" class="ensin-tag">Todas</div>
+        <div id="ensin-question" class="ensin-question">—</div>
+        <div id="ensin-answer" class="ensin-answer">—</div>
+
+        <div class="ensin-progress">
+          <div id="ensin-bar" class="ensin-bar"></div>
+        </div>
+
+        <div class="ensin-footer">
+          <button id="btn-anterior" class="nav-btn" type="button" onclick="anteriorEnsinamento()">Anterior</button>
+          <div id="ensin-counter" class="ensin-counter">0 de 0</div>
+          <button id="btn-proximo" class="nav-btn" type="button" onclick="proximoEnsinamento()">Próximo</button>
+        </div>
+      </div>
+    `;
+  }
+
+  content.innerHTML = html;
+  screen.style.display = "block";
+  screen.classList.add("active");
+
+  if (section === "credencial") {
+    qrDone = false;
+    setTimeout(genQR, 60);
+  }
+
+  if (section === "presencas") {
+    loadPres();
+  }
+
+  if (section === "ensinamentos") {
+    categoriaAtual = "Todas";
+    listaFiltrada = [...ensinamentos];
+    indiceAtual = 0;
+
+    setTimeout(() => {
+      const tab = document.querySelector(".ensin-tab.active") || document.querySelector(".ensin-tab");
+      if (tab) filtrarCategoria("Todas", tab);
+    }, 50);
+  }
+}
     function backHome() {
       document.getElementById("screen-section").style.display = "none";
       document.getElementById("screen-section").classList.remove("active");
