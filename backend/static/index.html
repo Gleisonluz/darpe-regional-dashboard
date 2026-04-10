@@ -974,8 +974,28 @@
     }
 
     function getFoto() {
-      return user?.foto_url || user?.foto || user?.imagem || "";
-    }
+  const foto =
+    user?.foto_url ||
+    user?.foto ||
+    user?.imagem ||
+    user?.foto_path ||
+    user?.foto_perfil ||
+    user?.image_url ||
+    user?.avatar ||
+    "";
+
+  if (!foto) return "";
+
+  if (
+    foto.startsWith("http://") ||
+    foto.startsWith("https://") ||
+    foto.startsWith("/")
+  ) {
+    return foto;
+  }
+
+  return `/${foto}`;
+}
 
     function getQrValue() {
       return user?.qr_token || user?.id || user?._id || user?.whatsapp || "DARPE";
